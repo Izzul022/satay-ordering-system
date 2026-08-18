@@ -1,0 +1,12 @@
+.git
+.github
+.gradle
+android-app
+.vscode
+.idea
+*.log
+data/*.sqlite-journal
+data/*.sqlite-wal
+data/*.sqlite-shm
+Dockerfile
+.dockerignore

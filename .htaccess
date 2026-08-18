@@ -1,0 +1,45 @@
+# Apache Configuration for Sate Tulang Madu Ordering System
+
+# 1. Enable Rewrite Engine
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Prevent directory listing
+    Options -Indexes
+
+    # Block access to database and sensitive directories
+    RewriteRule ^data/ - [F,L,NC]
+    RewriteRule ^\.git - [F,L,NC]
+    RewriteRule \.(sqlite|db|log|ini|env|sh|bak)$ - [F,L,NC]
+</IfModule>
+
+# 2. Add Proper MIME Types for PWA & Modern Web
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest .json
+    AddType image/svg+xml .svg
+    AddType audio/mpeg .mp3
+    AddType audio/wav .wav
+    AddType font/woff2 .woff2
+    AddType font/woff .woff
+</IfModule>
+
+# 3. Security Headers & CORS
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# 4. Browser Caching for Static Assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>

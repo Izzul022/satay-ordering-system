@@ -1,0 +1,48 @@
+{
+  "name": "Sate Tulang Madu - Restaurant & Ordering",
+  "short_name": "Sate Tulang",
+  "description": "Authentic Charcoal Grilled Satay Ordering, Kitchen KDS & POS Management System",
+  "start_url": "index.php",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#121110",
+  "theme_color": "#8B4513",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Order Menu",
+      "short_name": "Menu",
+      "description": "Open customer satay ordering catalog",
+      "url": "index.php",
+      "icons": [{ "src": "assets/images/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kitchen Display (KDS)",
+      "short_name": "Kitchen",
+      "description": "Live grill stick aggregator and order fulfillment queue",
+      "url": "kitchen.php",
+      "icons": [{ "src": "assets/images/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Admin Control Center",
+      "short_name": "Admin",
+      "description": "Sales analytics, menu management, and settings",
+      "url": "admin.php",
+      "icons": [{ "src": "assets/images/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

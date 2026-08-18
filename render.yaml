@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: satay-ordering-system
+    runtime: docker
+    plan: free
+    region: singapore # Closest low-latency region for Malaysia/SEA
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 80
+    disk:
+      name: satay-data
+      mountPath: /var/www/html/data
+      sizeGB: 1
