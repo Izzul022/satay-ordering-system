@@ -245,7 +245,12 @@ function is_admin() {
 
 function is_staff() {
     $user = get_current_auth_user();
-    return $user && ($user['role'] === 'staff' || $user['role'] === 'admin');
+    return $user && ($user['role'] === 'staff' || $user['role'] === 'staff_drinks' || $user['role'] === 'admin');
+}
+
+function is_drink_staff() {
+    $user = get_current_auth_user();
+    return $user && ($user['role'] === 'staff_drinks' || ($user['role'] === 'staff' && strpos(strtolower($user['username']), 'drink') !== false));
 }
 
 function is_customer() {

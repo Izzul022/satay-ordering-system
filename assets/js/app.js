@@ -99,7 +99,7 @@ const SatayApp = {
     }, duration);
   },
 
-  // Audio Alert Synthesizer for Kitchen & Order Alerts
+  // Audio Alert Synthesizer for Kitchen, Drinks & Order Alerts
   playChime(type = 'new_order') {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -120,11 +120,24 @@ const SatayApp = {
         osc.frequency.setValueAtTime(880.00, now + 0.15); // A5
         osc.frequency.setValueAtTime(1174.66, now + 0.3); // D6
 
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
 
         osc.start(now);
-        osc.stop(now + 0.7);
+        osc.stop(now + 0.75);
+      } else if (type === 'drink_order') {
+        // High, refreshing multi-tone melody for incoming drink orders (C5 -> E5 -> G5 -> C6)
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.12); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.24); // G5
+        osc.frequency.setValueAtTime(1046.50, now + 0.36); // C6
+
+        gain.gain.setValueAtTime(0.45, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+        osc.start(now);
+        osc.stop(now + 0.9);
       } else if (type === 'ready') {
         // High bell for order ready
         osc.type = 'triangle';
@@ -139,6 +152,53 @@ const SatayApp = {
       }
     } catch (e) {
       console.warn('Audio playback not permitted or unavailable:', e);
+    }
+  },
+
+  // Handphone / Mobile Vibration Alert via Web Vibration API
+  vibratePhone(pattern = [400, 150, 400, 150, 600]) {
+    try {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+      }
+    } catch (e) {
+      console.warn('Vibration API not supported or blocked:', e);
+    }
+  },
+
+  // Browser System / Handphone Push Notification
+  async showPushNotification(title, options = {}) {
+    try {
+      if (!('Notification' in window)) return;
+      
+      const defaultOpts = {
+        icon: 'assets/icons/icon-192.png',
+        badge: 'assets/icons/icon-192.png',
+        vibrate: [400, 150, 400, 150, 600],
+        tag: 'satay-order-alert',
+        renotify: true,
+        requireInteraction: true,
+        ...options
+      };
+
+      if (Notification.permission === 'granted') {
+        const notif = new Notification(title, defaultOpts);
+        notif.onclick = function() {
+          window.focus();
+          this.close();
+        };
+      } else if (Notification.permission !== 'denied') {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          const notif = new Notification(title, defaultOpts);
+          notif.onclick = function() {
+            window.focus();
+            this.close();
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('System push notification error:', e);
     }
   },
 

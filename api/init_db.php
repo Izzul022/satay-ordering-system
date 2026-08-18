@@ -134,6 +134,12 @@ function init_database_schema(PDO $pdo) {
         $user_stmt->execute(['staff', password_hash('staff123', PASSWORD_DEFAULT), 'Kitchen Grill Staff', 'kitchen@satayroyale.com', '012-3456781', 'Kitchen Counter', 'staff']);
     }
 
+    $drinks_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'drinks' OR role = 'staff_drinks'")->fetchColumn();
+    if ($drinks_count === 0) {
+        $user_stmt = $pdo->prepare("INSERT INTO users (username, password_hash, full_name, email, phone, address, role) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $user_stmt->execute(['drinks', password_hash('drinks123', PASSWORD_DEFAULT), 'Drink Station Staff', 'drinks@satayroyale.com', '012-3456782', 'Beverage & Drink Counter', 'staff_drinks']);
+    }
+
     // 3. Seed Default Store Settings (if empty)
     $settings_count = (int)$pdo->query("SELECT COUNT(*) FROM settings")->fetchColumn();
     if ($settings_count === 0) {
@@ -166,6 +172,27 @@ function init_database_schema(PDO $pdo) {
             (3, 'Sampingan & Kuah (Sides)', 'sampingan', 'Rice cakes, peanut sauce & condiments', 3, ''),
             (4, 'Minuman & Pencuci Mulut', 'minuman', 'Beverages & desserts', 4, '');
         ");
+    }
+
+    // 5. Seed Standard Beverage Items (if category 4 is empty)
+    $drink_items_count = (int)$pdo->query("SELECT COUNT(*) FROM menu_items WHERE category_id = 4")->fetchColumn();
+    if ($drink_items_count === 0) {
+        $drink_stmt = $pdo->prepare("
+            INSERT INTO menu_items (category_id, name, slug, description, price_per_unit, unit_name, min_quantity, is_popular, is_available, stock_quantity, image_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $default_drinks = [
+            [4, 'Teh Tarik Kaw', 'teh-tarik-kaw', 'Rich foamy Malaysian pulled milk tea', 3.50, 'cawan', 1, 1, 1, 150, 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&auto=format&fit=crop&q=80'],
+            [4, 'Teh O Ais Limau', 'teh-o-ais-limau', 'Refreshing iced black tea with fresh calamansi lime', 3.00, 'gelas', 1, 1, 1, 200, 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&auto=format&fit=crop&q=80'],
+            [4, 'Sirap Bandung Cincau', 'sirap-bandung-cincau', 'Rose syrup milk with grass jelly cubes', 4.00, 'gelas', 1, 1, 1, 100, 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500&auto=format&fit=crop&q=80'],
+            [4, 'Milo Ais Kaw', 'milo-ais-kaw', 'Thick iced chocolate malt beverage', 4.50, 'gelas', 1, 1, 1, 120, 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500&auto=format&fit=crop&q=80'],
+            [4, 'Kopi O Ais', 'kopi-o-ais', 'Traditional aromatic iced black coffee', 3.00, 'gelas', 1, 0, 1, 150, 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500&auto=format&fit=crop&q=80'],
+            [4, 'Air Kelapa Muda', 'air-kelapa-muda', 'Fresh coconut water served chilled', 5.50, 'biji', 1, 1, 1, 50, 'https://images.unsplash.com/photo-1588767763767-622839937107?w=500&auto=format&fit=crop&q=80'],
+            [4, 'Air Mineral', 'air-mineral', 'Bottled pure mineral water (500ml)', 2.00, 'botol', 1, 0, 1, 300, 'https://images.unsplash.com/photo-1560023907-5f339617ea30?w=500&auto=format&fit=crop&q=80']
+        ];
+        foreach ($default_drinks as $d) {
+            $drink_stmt->execute($d);
+        }
     }
 }
 
@@ -218,16 +245,45 @@ function migrate_database_schema(PDO $pdo) {
         }
     }
 
-    // 4. Ensure default staff user exists for existing databases
+    // 4. Ensure default staff users exist for existing databases
     try {
         $staff_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'staff'")->fetchColumn();
         if ($staff_count === 0) {
             $user_stmt = $pdo->prepare("INSERT INTO users (username, password_hash, full_name, email, phone, address, role) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $user_stmt->execute(['staff', password_hash('staff123', PASSWORD_DEFAULT), 'Kitchen Grill Staff', 'kitchen@satayroyale.com', '012-3456781', 'Kitchen Counter', 'staff']);
         }
+
+        $drinks_count = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE username = 'drinks' OR role = 'staff_drinks'")->fetchColumn();
+        if ($drinks_count === 0) {
+            $user_stmt = $pdo->prepare("INSERT INTO users (username, password_hash, full_name, email, phone, address, role) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $user_stmt->execute(['drinks', password_hash('drinks123', PASSWORD_DEFAULT), 'Drink Station Staff', 'drinks@satayroyale.com', '012-3456782', 'Beverage & Drink Counter', 'staff_drinks']);
+        }
     } catch (Exception $e) {}
 
-    // 5. Ensure auth_tokens table exists for persistent forever login sessions
+    // 5. Ensure default beverage items exist if category 4 is empty
+    try {
+        $drink_items_count = (int)$pdo->query("SELECT COUNT(*) FROM menu_items WHERE category_id = 4")->fetchColumn();
+        if ($drink_items_count === 0) {
+            $drink_stmt = $pdo->prepare("
+                INSERT INTO menu_items (category_id, name, slug, description, price_per_unit, unit_name, min_quantity, is_popular, is_available, stock_quantity, image_url)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $default_drinks = [
+                [4, 'Teh Tarik Kaw', 'teh-tarik-kaw', 'Rich foamy Malaysian pulled milk tea', 3.50, 'cawan', 1, 1, 1, 150, 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&auto=format&fit=crop&q=80'],
+                [4, 'Teh O Ais Limau', 'teh-o-ais-limau', 'Refreshing iced black tea with fresh calamansi lime', 3.00, 'gelas', 1, 1, 1, 200, 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500&auto=format&fit=crop&q=80'],
+                [4, 'Sirap Bandung Cincau', 'sirap-bandung-cincau', 'Rose syrup milk with grass jelly cubes', 4.00, 'gelas', 1, 1, 1, 100, 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500&auto=format&fit=crop&q=80'],
+                [4, 'Milo Ais Kaw', 'milo-ais-kaw', 'Thick iced chocolate malt beverage', 4.50, 'gelas', 1, 1, 1, 120, 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500&auto=format&fit=crop&q=80'],
+                [4, 'Kopi O Ais', 'kopi-o-ais', 'Traditional aromatic iced black coffee', 3.00, 'gelas', 1, 0, 1, 150, 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=500&auto=format&fit=crop&q=80'],
+                [4, 'Air Kelapa Muda', 'air-kelapa-muda', 'Fresh coconut water served chilled', 5.50, 'biji', 1, 1, 1, 50, 'https://images.unsplash.com/photo-1588767763767-622839937107?w=500&auto=format&fit=crop&q=80'],
+                [4, 'Air Mineral', 'air-mineral', 'Bottled pure mineral water (500ml)', 2.00, 'botol', 1, 0, 1, 300, 'https://images.unsplash.com/photo-1560023907-5f339617ea30?w=500&auto=format&fit=crop&q=80']
+            ];
+            foreach ($default_drinks as $d) {
+                $drink_stmt->execute($d);
+            }
+        }
+    } catch (Exception $e) {}
+
+    // 6. Ensure auth_tokens table exists for persistent forever login sessions
     try {
         $pdo->exec("
             CREATE TABLE IF NOT EXISTS auth_tokens (

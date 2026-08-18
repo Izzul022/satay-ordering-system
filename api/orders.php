@@ -186,43 +186,90 @@ function handle_get_orders(PDO $pdo) {
             'daging' => 0,
             'other' => 0
         ];
+        $drinks_summary = [
+            'total_drinks' => 0,
+            'breakdown' => []
+        ];
 
         if (!empty($order_ids)) {
             $in_clause = implode(',', array_fill(0, count($order_ids), '?'));
-            $item_stmt = $pdo->prepare("SELECT * FROM order_items WHERE order_id IN ($in_clause)");
+            $item_stmt = $pdo->prepare("
+                SELECT oi.*, m.category_id, c.slug as category_slug, c.name as category_name, m.unit_name
+                FROM order_items oi
+                LEFT JOIN menu_items m ON oi.menu_item_id = m.id
+                LEFT JOIN categories c ON m.category_id = c.id
+                WHERE oi.order_id IN ($in_clause)
+            ");
             $item_stmt->execute($order_ids);
             $all_items = $item_stmt->fetchAll();
 
             foreach ($all_items as $item) {
+                // Classify if item is beverage/drink
+                $cat_slug = strtolower($item['category_slug'] ?? '');
+                $name = strtolower($item['item_name'] ?? '');
+                $unit = strtolower($item['unit_name'] ?? '');
+                
+                $is_drink = (
+                    $cat_slug === 'minuman' || 
+                    (int)($item['category_id'] ?? 0) === 4 ||
+                    in_array($unit, ['cawan', 'gelas', 'cup', 'bottle', 'botol', 'can', 'tin']) ||
+                    preg_match('/(teh|kopi|milo|sirap|jus|air|nescafe|horlicks|bandung|cincau|limau|ribena|extra joss|mineral|beverage|drink)/i', $name)
+                );
+                
+                $item['is_drink'] = $is_drink;
                 $items_by_order[$item['order_id']][] = $item;
             }
         }
 
         foreach ($orders as &$ord) {
-            $ord['items'] = $items_by_order[$ord['id']] ?? [];
+            $ord_items = $items_by_order[$ord['id']] ?? [];
+            $ord['items'] = $ord_items;
+            
+            $drink_items = [];
+            $grill_items = [];
+            $drink_text_parts = [];
 
-            // Aggregate sticks on the grill (for pending, confirmed, grilling orders)
-            if (in_array($ord['order_status'], ['pending', 'confirmed', 'grilling'])) {
-                foreach ($ord['items'] as $it) {
-                    $qty = (int)$it['quantity'];
-                    $meat = strtolower($it['meat_type'] ?? '');
-                    $name = strtolower($it['item_name'] ?? '');
-                    
-                    if ($meat === 'tulang_madu' || strpos($name, 'tulang') !== false) {
-                        $grill_summary['tulang_madu'] += $qty;
-                        $grill_summary['total_sticks'] += $qty;
-                    } elseif ($meat === 'ayam' || strpos($name, 'ayam') !== false) {
-                        $grill_summary['ayam'] += $qty;
-                        $grill_summary['total_sticks'] += $qty;
-                    } elseif ($meat === 'daging' || strpos($name, 'daging') !== false || strpos($name, 'beef') !== false) {
-                        $grill_summary['daging'] += $qty;
-                        $grill_summary['total_sticks'] += $qty;
-                    } elseif (!empty($meat)) {
-                        $grill_summary['other'] += $qty;
-                        $grill_summary['total_sticks'] += $qty;
+            foreach ($ord_items as $it) {
+                $qty = (int)$it['quantity'];
+                $meat = strtolower($it['meat_type'] ?? '');
+                $name = strtolower($it['item_name'] ?? '');
+                $raw_name = $it['item_name'] ?? 'Item';
+
+                if (!empty($it['is_drink'])) {
+                    $drink_items[] = $it;
+                    $drink_text_parts[] = "{$qty}x {$raw_name}";
+
+                    if (in_array($ord['order_status'], ['pending', 'confirmed', 'grilling', 'preparing'])) {
+                        $drinks_summary['total_drinks'] += $qty;
+                        $drinks_summary['breakdown'][$raw_name] = ($drinks_summary['breakdown'][$raw_name] ?? 0) + $qty;
+                    }
+                } else {
+                    $grill_items[] = $it;
+
+                    // Aggregate sticks on the grill (for pending, confirmed, grilling orders)
+                    if (in_array($ord['order_status'], ['pending', 'confirmed', 'grilling'])) {
+                        if ($meat === 'tulang_madu' || strpos($name, 'tulang') !== false) {
+                            $grill_summary['tulang_madu'] += $qty;
+                            $grill_summary['total_sticks'] += $qty;
+                        } elseif ($meat === 'ayam' || strpos($name, 'ayam') !== false) {
+                            $grill_summary['ayam'] += $qty;
+                            $grill_summary['total_sticks'] += $qty;
+                        } elseif ($meat === 'daging' || strpos($name, 'daging') !== false || strpos($name, 'beef') !== false) {
+                            $grill_summary['daging'] += $qty;
+                            $grill_summary['total_sticks'] += $qty;
+                        } elseif (!empty($meat) || strpos($name, 'satay') !== false || strpos($name, 'sate') !== false) {
+                            $grill_summary['other'] += $qty;
+                            $grill_summary['total_sticks'] += $qty;
+                        }
                     }
                 }
             }
+
+            $ord['has_drinks'] = !empty($drink_items);
+            $ord['has_grill'] = !empty($grill_items);
+            $ord['drink_items'] = $drink_items;
+            $ord['grill_items'] = $grill_items;
+            $ord['drink_summary_text'] = implode(', ', $drink_text_parts);
         }
         unset($ord);
 
@@ -230,6 +277,7 @@ function handle_get_orders(PDO $pdo) {
             'success' => true,
             'active_orders_count' => count($orders),
             'grill_summary' => $grill_summary,
+            'drinks_summary' => $drinks_summary,
             'orders' => $orders,
             'server_time' => date('Y-m-d H:i:s')
         ]);

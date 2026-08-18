@@ -353,10 +353,11 @@ $currentUser = get_current_auth_user();
             </div>
 
             <!-- Role Filter Pills -->
-            <div style="margin-bottom:1.25rem; display:flex; gap:0.5rem; align-items:center;">
+            <div style="margin-bottom:1.25rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
                 <button class="btn btn-sm btn-secondary user-filter-pill active" data-role="all" onclick="AdminApp.filterUsersByRole('all')">All Accounts</button>
+                <button class="btn btn-sm btn-secondary user-filter-pill" data-role="staff_drinks" onclick="AdminApp.filterUsersByRole('staff_drinks')">🥤 Drink Staff</button>
+                <button class="btn btn-sm btn-secondary user-filter-pill" data-role="staff" onclick="AdminApp.filterUsersByRole('staff')">🍢 Grill & POS Staff</button>
                 <button class="btn btn-sm btn-secondary user-filter-pill" data-role="customer" onclick="AdminApp.filterUsersByRole('customer')">Registered Customers</button>
-                <button class="btn btn-sm btn-secondary user-filter-pill" data-role="staff" onclick="AdminApp.filterUsersByRole('staff')">Kitchen & POS Staff</button>
                 <button class="btn btn-sm btn-secondary user-filter-pill" data-role="admin" onclick="AdminApp.filterUsersByRole('admin')">Master Admins</button>
             </div>
 
@@ -581,7 +582,8 @@ $currentUser = get_current_auth_user();
                         <div class="form-group">
                             <label class="form-label" for="user-role">Role:</label>
                             <select class="form-select" id="user-role" required>
-                                <option value="staff">Kitchen & POS Staff</option>
+                                <option value="staff_drinks">🥤 Kitchen Drink Staff</option>
+                                <option value="staff">🍢 Kitchen Grill & POS Staff</option>
                                 <option value="customer">Registered Customer</option>
                                 <option value="admin">Administrator</option>
                             </select>

@@ -71,7 +71,7 @@ function handle_login(PDO $pdo) {
     // Determine redirect target strictly by role (customer order page is exclusively for customers)
     if ($user['role'] === 'admin') {
         $target_redirect = (!empty($redirect) && (strpos($redirect, 'admin.php') !== false || strpos($redirect, 'kitchen.php') !== false)) ? $redirect : 'admin.php';
-    } elseif ($user['role'] === 'staff') {
+    } elseif ($user['role'] === 'staff' || $user['role'] === 'staff_drinks') {
         $target_redirect = (!empty($redirect) && strpos($redirect, 'kitchen.php') !== false) ? $redirect : 'kitchen.php';
     } else {
         $target_redirect = (!empty($redirect) && strpos($redirect, 'admin.php') === false && strpos($redirect, 'kitchen.php') === false) ? $redirect : 'index.php';

@@ -2645,3 +2645,24 @@ button, input, select, textarea {
   flex-direction: column;
   gap: 0.5rem;
 }
+
+/* Station and KDS Filter Pills */
+.kds-station-pill.active {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border-color: var(--primary) !important;
+  font-weight: 700;
+}
+
+.kds-station-pill[data-station="drinks"].active {
+  background: #2563eb !important;
+  border-color: #3b82f6 !important;
+  color: #fff !important;
+}
+
+.kds-filter-pill.active {
+  background: var(--secondary) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+
