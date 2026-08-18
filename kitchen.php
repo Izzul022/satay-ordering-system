@@ -67,13 +67,6 @@ $currentUser = get_current_auth_user();
                 </a>
             <?php endif; ?>
 
-            <div style="display:flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--text-muted); background:var(--bg-card); padding:4px 10px; border-radius:var(--radius-full); border:1px solid var(--border-color);">
-                <span><?php echo htmlspecialchars($currentUser['full_name'] ?? 'Staff'); ?></span>
-                <span class="badge <?php echo ($currentUser['role'] === 'admin') ? 'badge-primary' : 'badge-gold'; ?>" style="font-size:0.65rem; padding:1px 5px;">
-                    <?php echo strtoupper($currentUser['role'] ?? 'STAFF'); ?>
-                </span>
-            </div>
-
             <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem; border-color:rgba(181, 61, 46, 0.3); color:var(--danger);">
                 Logout
             </a>

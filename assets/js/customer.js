@@ -59,14 +59,10 @@ const CustomerApp = {
     if (!container) return;
 
     if (this.currentUser) {
-      const roleBadgeClass = this.currentUser.role === 'customer' ? 'role-tag-customer' : 'badge-primary';
       container.innerHTML = `
         <div class="customer-profile-menu">
           <button class="profile-trigger-btn" onclick="CustomerApp.toggleProfileDropdown(event)">
             <span id="nav-user-name">${SatayApp.escapeHtml(this.currentUser.full_name)}</span>
-            <span class="badge ${roleBadgeClass}" style="font-size:0.65rem; padding:1px 6px;">
-              ${(this.currentUser.role || 'CUSTOMER').toUpperCase()}
-            </span>
             <span style="font-size:0.7rem;">&#9662;</span>
           </button>
           <div class="profile-dropdown-menu" id="profile-dropdown-menu">
