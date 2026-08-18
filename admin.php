@@ -113,28 +113,6 @@ $currentUser = get_current_auth_user();
             </div>
         </div>
 
-        <!-- Admin Subnav Tabs -->
-        <div class="dining-mode-selector">
-            <button type="button" class="mode-btn admin-nav-item active" data-tab="dashboard">
-                Dashboard
-            </button>
-            <button type="button" class="mode-btn admin-nav-item" data-tab="menu">
-                Menu CRUD
-            </button>
-            <button type="button" class="mode-btn admin-nav-item" data-tab="orders">
-                Orders
-            </button>
-            <button type="button" class="mode-btn admin-nav-item" data-tab="tables">
-                Table QRs
-            </button>
-            <button type="button" class="mode-btn admin-nav-item" data-tab="users">
-                Users
-            </button>
-            <button type="button" class="mode-btn admin-nav-item" data-tab="settings">
-                Settings
-            </button>
-        </div>
-
         <!-- Navigation & User Logout -->
         <div class="nav-actions" style="display:flex; align-items:center; gap:0.75rem;">
             <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem; border-color:rgba(181, 61, 46, 0.3); color:var(--danger);">

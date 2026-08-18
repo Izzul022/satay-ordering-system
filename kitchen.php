@@ -103,19 +103,6 @@ $currentUser = get_current_auth_user();
             </div>
         </div>
 
-        <!-- Mode Selector -->
-        <div class="dining-mode-selector">
-            <button type="button" class="mode-btn client-tab-btn active" data-tab="kds">
-                Live KDS
-            </button>
-            <button type="button" class="mode-btn client-tab-btn" data-tab="pos">
-                Cashier POS
-            </button>
-            <button type="button" class="mode-btn client-tab-btn" data-tab="stock">
-                Stock Control
-            </button>
-        </div>
-
         <div class="nav-actions" style="display:flex; align-items:center; gap:0.75rem;">
             <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--text-muted); cursor:pointer;">
                 <input type="checkbox" id="sound-alert-toggle" checked style="accent-color:var(--primary);">
