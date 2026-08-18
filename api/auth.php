@@ -65,6 +65,9 @@ function handle_login(PDO $pdo) {
     $_SESSION['address'] = $user['address'] ?? '';
     $_SESSION['role'] = $user['role'] ?? 'customer';
 
+    // Issue persistent 10-year remember token
+    create_user_remember_token($pdo, (int)$user['id']);
+
     // Determine redirect target strictly by role (customer order page is exclusively for customers)
     if ($user['role'] === 'admin') {
         $target_redirect = (!empty($redirect) && (strpos($redirect, 'admin.php') !== false || strpos($redirect, 'kitchen.php') !== false)) ? $redirect : 'admin.php';
@@ -133,7 +136,7 @@ function handle_register(PDO $pdo) {
     $insert->execute([$username, $password_hash, $full_name, $email, $phone, $address, $role]);
     $user_id = (int)$pdo->lastInsertId();
 
-    // Auto log in new customer
+    // Auto log in new customer with persistent session
     unset($_SESSION['is_guest'], $_SESSION['guest_name'], $_SESSION['guest_phone']);
     $_SESSION['user_id'] = $user_id;
     $_SESSION['username'] = $username;
@@ -142,6 +145,9 @@ function handle_register(PDO $pdo) {
     $_SESSION['phone'] = $phone;
     $_SESSION['address'] = $address;
     $_SESSION['role'] = $role;
+
+    // Issue persistent 10-year remember token
+    create_user_remember_token($pdo, $user_id);
 
     json_response([
         'success' => true,
@@ -250,6 +256,7 @@ function handle_check_auth() {
 }
 
 function handle_logout() {
+    clear_user_remember_token();
     $_SESSION = [];
     if (ini_get("session.use_cookies")) {
         $params = session_get_cookie_params();

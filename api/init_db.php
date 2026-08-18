@@ -102,9 +102,20 @@ function init_database_schema(PDO $pdo) {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            user_agent TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            expires_at DATETIME NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
         CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
         CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
         CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+        CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
     ");
 
     // Run safe migrations for existing databases
@@ -214,5 +225,21 @@ function migrate_database_schema(PDO $pdo) {
             $user_stmt = $pdo->prepare("INSERT INTO users (username, password_hash, full_name, email, phone, address, role) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $user_stmt->execute(['staff', password_hash('staff123', PASSWORD_DEFAULT), 'Kitchen Grill Staff', 'kitchen@satayroyale.com', '012-3456781', 'Kitchen Counter', 'staff']);
         }
+    } catch (Exception $e) {}
+
+    // 5. Ensure auth_tokens table exists for persistent forever login sessions
+    try {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS auth_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token TEXT UNIQUE NOT NULL,
+                user_agent TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                expires_at DATETIME NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
+        ");
     } catch (Exception $e) {}
 }

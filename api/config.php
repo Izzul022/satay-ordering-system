@@ -11,8 +11,30 @@ ini_set('log_errors', 1);
 // Set timezone
 date_default_timezone_set('Asia/Kuala_Lumpur');
 
-// Initialize PHP Session
+// Persistent Session Lifetime (10 years = 315,360,000 seconds)
+$session_lifetime = 315360000;
+ini_set('session.cookie_lifetime', $session_lifetime);
+ini_set('session.gc_maxlifetime', $session_lifetime);
+
+// Dedicated session directory in data/sessions to protect against server/OS temp purges
+$session_dir = __DIR__ . '/../data/sessions';
+if (!is_dir($session_dir)) {
+    @mkdir($session_dir, 0777, true);
+}
+if (is_dir($session_dir) && is_writable($session_dir)) {
+    session_save_path($session_dir);
+}
+
+// Initialize PHP Session with persistent cookie parameters
 if (session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => $session_lifetime,
+        'path' => '/',
+        'domain' => '',
+        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
     session_start();
 }
 
@@ -101,23 +123,115 @@ function format_currency($amount, $currency = 'RM') {
     return $currency . ' ' . number_format((float)$amount, 2);
 }
 
+// Persistent "Remember Token" Helpers for Forever Logins
+function create_user_remember_token(PDO $pdo, $user_id) {
+    try {
+        $token = bin2hex(random_bytes(32));
+        $user_agent = substr($_SERVER['HTTP_USER_AGENT'] ?? 'Unknown', 0, 255);
+        $expires_at = date('Y-m-d H:i:s', time() + 315360000); // 10 years
+
+        $stmt = $pdo->prepare("INSERT INTO auth_tokens (user_id, token, user_agent, expires_at) VALUES (?, ?, ?, ?)");
+        $stmt->execute([(int)$user_id, $token, $user_agent, $expires_at]);
+
+        // Set persistent cookie (10 years)
+        $is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+        setcookie('satay_remember_token', $token, [
+            'expires' => time() + 315360000,
+            'path' => '/',
+            'domain' => '',
+            'secure' => $is_https,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+        return $token;
+    } catch (Exception $e) {
+        error_log('Error creating remember token: ' . $e->getMessage());
+        return null;
+    }
+}
+
+function clear_user_remember_token(PDO $pdo = null) {
+    $token = $_COOKIE['satay_remember_token'] ?? '';
+    if (!empty($token)) {
+        try {
+            if ($pdo === null) {
+                $pdo = get_db_connection();
+            }
+            $stmt = $pdo->prepare("DELETE FROM auth_tokens WHERE token = ?");
+            $stmt->execute([$token]);
+        } catch (Exception $e) {}
+    }
+
+    $is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    setcookie('satay_remember_token', '', [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $is_https,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+}
+
 // Auth Helpers
 function get_current_auth_user() {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    if (!isset($_SESSION['user_id'])) {
-        return null;
+
+    // 1. If active in session, return it
+    if (isset($_SESSION['user_id'])) {
+        return [
+            'id' => (int)$_SESSION['user_id'],
+            'username' => $_SESSION['username'] ?? '',
+            'full_name' => $_SESSION['full_name'] ?? 'User',
+            'email' => $_SESSION['email'] ?? '',
+            'phone' => $_SESSION['phone'] ?? '',
+            'address' => $_SESSION['address'] ?? '',
+            'role' => $_SESSION['role'] ?? 'customer'
+        ];
     }
-    return [
-        'id' => (int)$_SESSION['user_id'],
-        'username' => $_SESSION['username'] ?? '',
-        'full_name' => $_SESSION['full_name'] ?? 'User',
-        'email' => $_SESSION['email'] ?? '',
-        'phone' => $_SESSION['phone'] ?? '',
-        'address' => $_SESSION['address'] ?? '',
-        'role' => $_SESSION['role'] ?? 'customer'
-    ];
+
+    // 2. If not in session, check persistent remember token in cookie + database
+    $remember_token = $_COOKIE['satay_remember_token'] ?? '';
+    if (!empty($remember_token)) {
+        try {
+            $pdo = get_db_connection();
+            $stmt = $pdo->prepare("
+                SELECT u.* FROM users u
+                INNER JOIN auth_tokens t ON u.id = t.user_id
+                WHERE t.token = ? AND t.expires_at > datetime('now')
+                LIMIT 1
+            ");
+            $stmt->execute([$remember_token]);
+            $user = $stmt->fetch();
+
+            if ($user) {
+                // Auto-restore session seamlessly
+                $_SESSION['user_id'] = (int)$user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['full_name'] = $user['full_name'];
+                $_SESSION['email'] = $user['email'] ?? '';
+                $_SESSION['phone'] = $user['phone'] ?? '';
+                $_SESSION['address'] = $user['address'] ?? '';
+                $_SESSION['role'] = $user['role'] ?? 'customer';
+
+                return [
+                    'id' => (int)$user['id'],
+                    'username' => $user['username'],
+                    'full_name' => $user['full_name'],
+                    'email' => $user['email'] ?? '',
+                    'phone' => $user['phone'] ?? '',
+                    'address' => $user['address'] ?? '',
+                    'role' => $user['role'] ?? 'customer'
+                ];
+            }
+        } catch (Exception $e) {
+            error_log('Error restoring session from remember token: ' . $e->getMessage());
+        }
+    }
+
+    return null;
 }
 
 function is_logged_in() {
