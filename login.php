@@ -33,7 +33,7 @@ if (!in_array($activeTab, ['login', 'register', 'guest'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sign In - Sate Tulang Madu</title>
     <meta name="description" content="Sign in, register, or order in guest mode for authentic charcoal-grilled skewers at Sate Tulang Madu.">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%238B4513%22>S</text></svg>">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8B4513">

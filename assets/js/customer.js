@@ -1076,13 +1076,21 @@ const CustomerApp = {
 
     const stepIcons = ['📋', '👨‍🍳', '🔥', '🛎️', '✅'];
 
+    const isOrderCompleted = order.order_status === 'completed';
+
     const timelineHtml = stages.map((stg, idx) => {
-      const isCompleted = idx < currentIdx;
-      const isActive = idx === currentIdx;
+      const isCompleted = isOrderCompleted ? true : (idx < currentIdx);
+      const isActive = isOrderCompleted ? false : (idx === currentIdx);
       return `
         <div class="tracker-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}">
           <div class="step-node">
-            ${isCompleted ? '<span class="step-check">✓</span>' : (isActive ? `<span class="step-active-icon">${stepIcons[idx]}</span>` : `<span class="step-num">${idx + 1}</span>`)}
+            ${isCompleted ? `
+              <div class="step-check-icon">
+                <svg class="step-check-svg" viewBox="0 0 24 24">
+                  <path class="check-path" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" d="M4 12.5L9.5 18L20 6" />
+                </svg>
+              </div>
+            ` : (isActive ? `<span class="step-active-icon">${stepIcons[idx]}</span>` : `<span class="step-num">${idx + 1}</span>`)}
           </div>
           <div class="step-label">${stageLabels[stg]}</div>
         </div>
