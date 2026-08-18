@@ -97,9 +97,6 @@ const CustomerApp = {
     } else if (this.guestInfo) {
       container.innerHTML = `
         <div style="display:flex; align-items:center; gap:0.5rem;">
-          <span class="badge badge-gold" style="font-size:0.75rem; padding:0.35rem 0.75rem; border-radius:var(--radius-full);">
-            ${SatayApp.escapeHtml(this.guestInfo.name || 'Guest')} (Guest)
-          </span>
           <a href="login.php?tab=login" class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:0.35rem 0.75rem;">
             Sign In / Register
           </a>

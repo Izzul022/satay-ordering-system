@@ -94,11 +94,8 @@ if (!$currentUser && !$guestInfo) {
                         </div>
                     </div>
                 <?php elseif ($guestInfo): ?>
-                    <!-- Guest Mode Badge & Switch to Sign In / Exit -->
+                    <!-- Guest Mode Switch to Sign In / Exit -->
                     <div style="display:flex; align-items:center; gap:0.5rem;">
-                        <span class="badge badge-gold" style="font-size:0.75rem; padding:0.3rem 0.7rem; border-radius:var(--radius-full);">
-                            <?php echo htmlspecialchars($guestInfo['guest_name']); ?> (Guest)
-                        </span>
                         <a href="login.php?tab=login" class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:0.35rem 0.75rem;">
                             Sign In / Register
                         </a>
