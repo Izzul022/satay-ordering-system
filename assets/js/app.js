@@ -3,96 +3,144 @@
  */
 
 const SatayApp = {
- currency: 'RM',
+  currency: 'RM',
 
- // Format currency string
- formatPrice(amount) {
- return `${this.currency} ${parseFloat(amount || 0).toFixed(2)}`;
- },
+  // Format currency string
+  formatPrice(amount) {
+    return `${this.currency} ${parseFloat(amount || 0).toFixed(2)}`;
+  },
 
- // HTML escaping utility for XSS protection
- escapeHtml(str) {
- if (str === null || str === undefined) return '';
- return String(str)
- .replace(/&/g, '&amp;')
- .replace(/</g, '&lt;')
- .replace(/>/g, '&gt;')
- .replace(/"/g, '&quot;')
- .replace(/'/g, '&#039;');
- },
+  // Parse order timestamp reliably across UTC / Local formats
+  parseOrderDate(dateStr) {
+    if (!dateStr) return new Date();
+    if (typeof dateStr === 'number') return new Date(dateStr * 1000);
+    
+    const str = String(dateStr).trim();
+    if (!str) return new Date();
 
- // Show Toast Notification
- showToast(message, type = 'info', duration = 3500) {
- let container = document.getElementById('toast-container');
- if (!container) {
- container = document.createElement('div');
- container.id = 'toast-container';
- container.className = 'toast-container';
- document.body.appendChild(container);
- }
+    // If string is ISO with Z or offset
+    if (str.includes('T') && (str.endsWith('Z') || str.includes('+'))) {
+      return new Date(str);
+    }
 
- const icons = {
- info: '',
- success: '',
- warning: '',
- danger: ''
- };
+    // Standard SQLite format: 'YYYY-MM-DD HH:MM:SS'
+    // Attempt local parse:
+    const localParsed = new Date(str.replace(/-/g, '/'));
+    // Attempt UTC parse:
+    const utcParsed = new Date(str.replace(' ', 'T') + 'Z');
 
- const toast = document.createElement('div');
- toast.className = `toast toast-${type}`;
- toast.innerHTML = `<span>${icons[type] || ''}</span> <span>${message}</span>`;
- container.appendChild(toast);
+    const now = new Date();
+    const diffLocal = Math.abs(now.getTime() - localParsed.getTime());
+    const diffUtc = Math.abs(now.getTime() - utcParsed.getTime());
 
- setTimeout(() => {
- toast.style.opacity = '0';
- toast.style.transform = 'translateY(10px)';
- toast.style.transition = 'all 0.3s ease';
- setTimeout(() => toast.remove(), 300);
- }, duration);
- },
+    // If local diff is huge (e.g. ~8 hours = 480 mins) and UTC diff is much smaller, use UTC!
+    if (!isNaN(utcParsed.getTime()) && !isNaN(localParsed.getTime())) {
+      return (diffUtc < diffLocal) ? utcParsed : localParsed;
+    }
+    return !isNaN(localParsed.getTime()) ? localParsed : new Date();
+  },
 
- // Audio Alert Synthesizer for Kitchen & Order Alerts
- playChime(type = 'new_order') {
- try {
- const AudioCtx = window.AudioContext || window.webkitAudioContext;
- if (!AudioCtx) return;
- const ctx = new AudioCtx();
+  getElapsedMinutes(dateStr) {
+    const created = this.parseOrderDate(dateStr);
+    return Math.max(0, Math.floor((new Date().getTime() - created.getTime()) / 60000));
+  },
 
- const now = ctx.currentTime;
- const osc = ctx.createOscillator();
- const gain = ctx.createGain();
+  formatTimeAgo(dateStr) {
+    const created = this.parseOrderDate(dateStr);
+    const diffSec = Math.max(0, Math.floor((new Date().getTime() - created.getTime()) / 1000));
 
- osc.connect(gain);
- gain.connect(ctx.destination);
+    if (diffSec < 45) return 'Just now';
+    const mins = Math.floor(diffSec / 60);
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ${mins % 60}m ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  },
 
- if (type === 'new_order') {
- // Energetic 3-tone chime for incoming orders
- osc.type = 'sine';
- osc.frequency.setValueAtTime(587.33, now); // D5
- osc.frequency.setValueAtTime(880.00, now + 0.15); // A5
- osc.frequency.setValueAtTime(1174.66, now + 0.3); // D6
+  // HTML escaping utility for XSS protection
+  escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  },
 
- gain.gain.setValueAtTime(0.3, now);
- gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+  // Show Toast Notification
+  showToast(message, type = 'info', duration = 3500) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toast-container';
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
 
- osc.start(now);
- osc.stop(now + 0.7);
- } else if (type === 'ready') {
- // High bell for order ready
- osc.type = 'triangle';
- osc.frequency.setValueAtTime(1046.50, now); // C6
- osc.frequency.setValueAtTime(1318.51, now + 0.2); // E6
+    const icons = {
+      info: 'ℹ️',
+      success: '✅',
+      warning: '⚠️',
+      danger: '❌'
+    };
 
- gain.gain.setValueAtTime(0.35, now);
- gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `<span>${icons[type] || ''}</span> <span>${message}</span>`;
+    container.appendChild(toast);
 
- osc.start(now);
- osc.stop(now + 0.6);
- }
- } catch (e) {
- console.warn('Audio playback not permitted or unavailable:', e);
- }
- },
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  },
+
+  // Audio Alert Synthesizer for Kitchen & Order Alerts
+  playChime(type = 'new_order') {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === 'new_order') {
+        // Energetic 3-tone chime for incoming orders
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, now); // D5
+        osc.frequency.setValueAtTime(880.00, now + 0.15); // A5
+        osc.frequency.setValueAtTime(1174.66, now + 0.3); // D6
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+
+        osc.start(now);
+        osc.stop(now + 0.7);
+      } else if (type === 'ready') {
+        // High bell for order ready
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1046.50, now); // C6
+        osc.frequency.setValueAtTime(1318.51, now + 0.2); // E6
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+        osc.start(now);
+        osc.stop(now + 0.6);
+      }
+    } catch (e) {
+      console.warn('Audio playback not permitted or unavailable:', e);
+    }
+  },
 
   // Modal Manager
   openModal(modalId) {
@@ -243,7 +291,6 @@ const SatayApp = {
         <div class="receipt-paper">
           <div class="text-center">
             <div class="header-title">SATE TULANG MADU</div>
-            <div class="header-sub">Traditional Charcoal Skewers Master</div>
             <div class="header-sub">Kg. Kubang Batang, 16210 Tumpat, Kelantan</div>
             <div class="header-sub">Tel: +6017-9885400</div>
             <div class="divider"></div>
@@ -329,14 +376,14 @@ const SatayApp = {
   }
 };
 
-// Global click handler to close modals when clicking backdrop
+// Global click handler to close modals and side drawers when clicking backdrop
 document.addEventListener('click', (e) => {
   if (e.target.classList.contains('modal-overlay')) {
     e.target.classList.remove('open');
     document.body.style.overflow = '';
   }
-  if (e.target.classList.contains('drawer-backdrop')) {
-    e.target.classList.remove('open');
+  if (e.target.classList.contains('drawer-backdrop') || e.target.classList.contains('app-sidenav-backdrop')) {
+    SatayApp.closeSideNav();
     const drawer = document.querySelector('.drawer.open');
     if (drawer) drawer.classList.remove('open');
   }

@@ -435,11 +435,12 @@ function handle_create_order(PDO $pdo) {
         // Auto-mark as paid for QR pay/cash POS if passed
         $payment_status = (isset($data['payment_status']) && $data['payment_status'] === 'paid') ? 'paid' : ($payment_method === 'cash' ? 'unpaid' : 'paid');
 
-        // Insert Order
+        // Insert Order with exact local timestamp
+        $now = date('Y-m-d H:i:s');
         $order_stmt = $pdo->prepare("
             INSERT INTO orders 
-            (order_number, user_id, is_guest, customer_name, customer_phone, dining_type, table_number, delivery_address, notes, subtotal, tax_amount, service_fee, discount_amount, total_amount, payment_method, payment_status, order_status, estimated_minutes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+            (order_number, user_id, is_guest, customer_name, customer_phone, dining_type, table_number, delivery_address, notes, subtotal, tax_amount, service_fee, discount_amount, total_amount, payment_method, payment_status, order_status, estimated_minutes, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)
         ");
 
         $order_stmt->execute([
@@ -459,7 +460,9 @@ function handle_create_order(PDO $pdo) {
             $total_amount,
             $payment_method,
             $payment_status,
-            $estimated_minutes
+            $estimated_minutes,
+            $now,
+            $now
         ]);
 
         $order_id = $pdo->lastInsertId();

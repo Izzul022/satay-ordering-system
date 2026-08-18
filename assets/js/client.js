@@ -170,40 +170,40 @@ const ClientApp = {
  }
 
  grid.innerHTML = list.map(order => {
- // Calculate elapsed minutes
- const created = new Date(order.created_at);
- const elapsedMins = Math.max(0, Math.floor((new Date() - created) / 60000));
- const isLate = elapsedMins >= 20;
+      // Calculate real-time elapsed minutes and display string
+      const elapsedMins = SatayApp.getElapsedMinutes(order.created_at);
+      const timeAgoStr = SatayApp.formatTimeAgo(order.created_at);
+      const isLate = elapsedMins >= 20;
 
- const itemsHtml = (order.items || []).map(it => `
- <div class="ticket-item-row">
- <div style="display:flex; align-items:baseline; gap:8px;">
- <span class="ticket-item-qty">${it.quantity}x</span>
- <div>
- <strong>${it.item_name}</strong>
- ${it.spicy_level !== 'normal' ? `<span style="font-size:0.75rem; color:var(--primary); font-weight:700;">[${it.spicy_level}]</span>` : ''}
- ${it.special_notes ? `<div style="font-size:0.75rem; color:var(--gold);">* ${it.special_notes}</div>` : ''}
- </div>
- </div>
- </div>
- `).join('');
+      const itemsHtml = (order.items || []).map(it => `
+        <div class="ticket-item-row">
+          <div style="display:flex; align-items:baseline; gap:8px;">
+            <span class="ticket-item-qty">${it.quantity}x</span>
+            <div>
+              <strong>${it.item_name}</strong>
+              ${it.spicy_level !== 'normal' ? `<span style="font-size:0.75rem; color:var(--primary); font-weight:700;">[${it.spicy_level}]</span>` : ''}
+              ${it.special_notes ? `<div style="font-size:0.75rem; color:var(--gold);">* ${it.special_notes}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
 
- return `
- <div class="ticket-card status-${order.order_status}">
- <div class="ticket-header">
- <div>
- <div class="ticket-number">#${order.order_number}</div>
- <div style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-top:2px;">
- ${order.customer_name} ${order.table_number ? `• Table ${order.table_number}` : ''}
- </div>
- </div>
- <div style="text-align:right;">
- <span class="badge ${this.getStatusBadgeClass(order.order_status)}">${order.order_status}</span>
- <div class="ticket-time" style="color: ${isLate ? 'var(--danger)' : 'var(--text-muted)'}; font-weight:${isLate ? '800' : '500'};">
- ${elapsedMins}m ago
- </div>
- </div>
- </div>
+      return `
+        <div class="ticket-card status-${order.order_status}">
+          <div class="ticket-header">
+            <div>
+              <div class="ticket-number">#${order.order_number}</div>
+              <div style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-top:2px;">
+                ${order.customer_name} ${order.table_number ? `• Table ${order.table_number}` : ''}
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span class="badge ${this.getStatusBadgeClass(order.order_status)}">${order.order_status}</span>
+              <div class="ticket-time" style="color: ${isLate ? 'var(--danger)' : 'var(--text-muted)'}; font-weight:${isLate ? '800' : '500'};">
+                ${timeAgoStr}
+              </div>
+            </div>
+          </div>
 
  <div class="ticket-body">
  <div style="margin-bottom:0.6rem; display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted);">

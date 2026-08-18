@@ -242,7 +242,6 @@ $currentUser = get_current_auth_user();
                             <select class="form-select" id="pos-payment-method" style="padding:0.4rem 0.6rem;">
                                 <option value="cash">Cash Payment</option>
                                 <option value="qr_pay">DuitNow QR Pay</option>
-                                <option value="card">Card Terminal</option>
                             </select>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;">

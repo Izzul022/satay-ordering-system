@@ -494,8 +494,6 @@ if (!$currentUser && !$guestInfo) {
                         <select class="form-select" id="checkout-payment">
                             <option value="cash">Cash at Counter / COD</option>
                             <option value="qr_pay">DuitNow QR / Touch 'n Go eWallet</option>
-                            <option value="card">Debit / Credit Card</option>
-                            <option value="online">Online Banking (FPX)</option>
                         </select>
                     </div>
 

@@ -1115,10 +1115,6 @@ const CustomerApp = {
       <!-- Hero Status Header with Animations -->
       <div class="tracker-hero-box">
         <div style="display:flex; justify-content:center; align-items:center; gap:0.5rem; margin-bottom:0.6rem; flex-wrap:wrap;">
-          <div class="tracker-live-pill">
-            <span class="live-beacon"></span>
-            <span>Live Kitchen Sync</span>
-          </div>
           <div class="badge badge-gold" style="font-size:0.75rem; padding:3px 10px; margin-bottom:0.75rem;">
             ORDER #${SatayApp.escapeHtml(order.order_number)}
           </div>
