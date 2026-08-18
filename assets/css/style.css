@@ -754,7 +754,10 @@ button, input, select, textarea {
   box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
 }
 
-/* Order Tracker Progress Visualizer */
+/* ==========================================================================
+   LIVE ORDER TRACKER - ANIMATED VISUALIZER SYSTEM
+   ========================================================================== */
+
 .tracker-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
@@ -764,35 +767,229 @@ button, input, select, textarea {
   box-shadow: var(--shadow-sm);
 }
 
+/* Live Radar Beacon Badge */
+.tracker-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(45, 122, 79, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(45, 122, 79, 0.25);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.live-beacon {
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+  position: relative;
+  display: inline-block;
+}
+
+.live-beacon::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: var(--success);
+  opacity: 0.7;
+  animation: beaconPulse 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes beaconPulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* Hero Status Animation Box */
+.tracker-hero-box {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(180deg, rgba(245, 241, 236, 0.6) 0%, rgba(255, 255, 255, 0.9) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.tracker-hero-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), var(--primary), var(--gold));
+}
+
+/* Animated Stage Icon Bubble */
+.tracker-hero-icon-wrap {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3rem;
+  position: relative;
+  transition: var(--transition);
+}
+
+/* Stage-specific Hero Glows & Animations */
+.tracker-hero-icon-wrap.status-anim-pending {
+  background: rgba(59, 111, 160, 0.12);
+  border: 2px solid rgba(59, 111, 160, 0.35);
+  box-shadow: 0 6px 20px rgba(59, 111, 160, 0.2);
+  animation: iconFloat 2.5s ease-in-out infinite;
+}
+
+.tracker-hero-icon-wrap.status-anim-confirmed {
+  background: rgba(155, 106, 47, 0.14);
+  border: 2px solid rgba(155, 106, 47, 0.35);
+  box-shadow: 0 6px 20px rgba(155, 106, 47, 0.2);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.tracker-hero-icon-wrap.status-anim-grilling {
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.2) 0%, rgba(181, 61, 46, 0.2) 100%);
+  border: 2px solid rgba(230, 126, 34, 0.5);
+  box-shadow: 0 0 25px rgba(230, 126, 34, 0.35), 0 0 50px rgba(181, 61, 46, 0.15);
+  animation: flameGlow 1.8s ease-in-out infinite alternate;
+}
+
+.tracker-hero-icon-wrap.status-anim-grilling .hero-anim-icon {
+  display: inline-block;
+  animation: flameFlicker 0.8s ease-in-out infinite alternate;
+}
+
+.tracker-hero-icon-wrap.status-anim-ready {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(155, 106, 47, 0.25) 100%);
+  border: 2px solid rgba(212, 175, 55, 0.6);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.4), 0 0 60px rgba(155, 106, 47, 0.2);
+  animation: readyHalo 1.6s ease-in-out infinite;
+}
+
+.tracker-hero-icon-wrap.status-anim-ready .hero-anim-icon {
+  display: inline-block;
+  animation: bellShake 1.2s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.tracker-hero-icon-wrap.status-anim-completed {
+  background: rgba(45, 122, 79, 0.15);
+  border: 2px solid rgba(45, 122, 79, 0.4);
+  box-shadow: 0 8px 24px rgba(45, 122, 79, 0.25);
+  animation: successCelebrate 1s ease-out;
+}
+
+.tracker-hero-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+  letter-spacing: -0.01em;
+}
+
+.tracker-hero-subtitle {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  max-width: 440px;
+  margin: 0 auto 0.75rem;
+  line-height: 1.4;
+}
+
+/* Keyframe Animations for Hero States */
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes flameFlicker {
+  0% { transform: scale(1) rotate(-3deg); }
+  50% { transform: scale(1.1) rotate(4deg); }
+  100% { transform: scale(1.05) rotate(-2deg); }
+}
+
+@keyframes flameGlow {
+  0% { box-shadow: 0 0 15px rgba(230, 126, 34, 0.3), 0 0 30px rgba(181, 61, 46, 0.15); }
+  100% { box-shadow: 0 0 30px rgba(230, 126, 34, 0.6), 0 0 60px rgba(181, 61, 46, 0.3); }
+}
+
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-12deg); }
+  45% { transform: rotate(10deg); }
+  60% { transform: rotate(-6deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes readyHalo {
+  0% { box-shadow: 0 0 18px rgba(212, 175, 55, 0.3), 0 0 0 0 rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 32px rgba(212, 175, 55, 0.6), 0 0 0 12px rgba(212, 175, 55, 0); }
+  100% { box-shadow: 0 0 18px rgba(212, 175, 55, 0.3), 0 0 0 0 rgba(212, 175, 55, 0); }
+}
+
+@keyframes successCelebrate {
+  0% { transform: scale(0.6) rotate(-20deg); opacity: 0; }
+  60% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Timeline Track & Steps */
 .tracker-timeline {
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
-  margin: 2rem 0 1.25rem;
+  margin: 2.25rem 0 1.5rem;
+  padding: 0 10px;
 }
 
 .tracker-timeline::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 3px;
+  top: 21px;
+  left: 20px;
+  right: 20px;
+  height: 4px;
   background: var(--border-color);
   transform: translateY(-50%);
   z-index: 1;
+  border-radius: var(--radius-full);
 }
 
 .tracker-progress-line {
   position: absolute;
-  top: 50%;
-  left: 0;
-  height: 3px;
-  background: var(--primary);
+  top: 21px;
+  left: 20px;
+  height: 4px;
+  background: linear-gradient(90deg, #2d7a4f 0%, #9B6A2F 45%, #e67e22 80%, #8B4513 100%);
+  background-size: 200% 100%;
   transform: translateY(-50%);
   z-index: 2;
-  transition: width 0.6s ease;
+  border-radius: var(--radius-full);
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 10px rgba(139, 69, 19, 0.45);
+  animation: progressShimmer 2.2s linear infinite;
+}
+
+@keyframes progressShimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 .tracker-step {
@@ -802,44 +999,87 @@ button, input, select, textarea {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  flex: 1;
 }
 
 .step-node {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: var(--bg-surface);
   border: 3px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  transition: var(--transition);
+  color: var(--text-muted);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: var(--shadow-sm);
 }
 
+/* Active Step with Glowing Pulsing Ring */
 .tracker-step.active .step-node {
   background: var(--primary);
-  border-color: var(--primary);
+  border-color: #fff;
   color: #fff;
+  font-size: 1.1rem;
+  transform: scale(1.15);
+  box-shadow: 0 0 0 0 rgba(139, 69, 19, 0.5), 0 4px 12px rgba(139, 69, 19, 0.35);
+  animation: activeStepPulse 1.8s infinite;
 }
 
+@keyframes activeStepPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(139, 69, 19, 0.6), 0 4px 12px rgba(139, 69, 19, 0.35);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(139, 69, 19, 0), 0 4px 12px rgba(139, 69, 19, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(139, 69, 19, 0), 0 4px 12px rgba(139, 69, 19, 0.35);
+  }
+}
+
+/* Completed Step with Checkmark Pop */
 .tracker-step.completed .step-node {
   background: var(--success);
-  border-color: var(--success);
+  border-color: #fff;
   color: #fff;
+  box-shadow: 0 2px 8px rgba(45, 122, 79, 0.3);
+}
+
+.step-check {
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 900;
+  animation: checkPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes checkPop {
+  0% { transform: scale(0); opacity: 0; }
+  70% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
 .step-label {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 600;
   color: var(--text-muted);
+  transition: var(--transition);
+  max-width: 90px;
+  line-height: 1.25;
 }
 
 .tracker-step.active .step-label {
   color: var(--primary);
-  font-weight: 700;
+  font-weight: 800;
+}
+
+.tracker-step.completed .step-label {
+  color: var(--text-main);
+  font-weight: 600;
 }
 
 /* Kitchen Display System (KDS) & POS Styles */
@@ -1473,20 +1713,56 @@ button, input, select, textarea {
     padding: 1.15rem;
   }
 
+  .tracker-hero-box {
+    padding: 1rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .tracker-hero-icon-wrap {
+    width: 62px;
+    height: 62px;
+    font-size: 1.8rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .tracker-hero-title {
+    font-size: 1.2rem;
+  }
+
+  .tracker-hero-subtitle {
+    font-size: 0.78rem;
+    margin-bottom: 0.5rem;
+  }
+
   .tracker-timeline {
-    margin: 1.25rem 0 0.75rem;
+    margin: 1.5rem 0 1rem;
+    padding: 0 4px;
+  }
+
+  .tracker-timeline::before,
+  .tracker-progress-line {
+    top: 17px;
+    left: 14px;
+    right: 14px;
+    height: 3px;
   }
 
   .step-node {
-    width: 32px;
-    height: 32px;
-    font-size: 0.72rem;
+    width: 34px;
+    height: 34px;
+    font-size: 0.78rem;
+  }
+
+  .tracker-step.active .step-node {
+    font-size: 0.95rem;
+    transform: scale(1.12);
   }
 
   .step-label {
     font-size: 0.62rem;
-    max-width: 60px;
+    max-width: 58px;
     word-wrap: break-word;
+    line-height: 1.2;
   }
 
   /* --- Kitchen Display System (KDS) --- */

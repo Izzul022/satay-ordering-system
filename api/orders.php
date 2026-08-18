@@ -56,12 +56,12 @@ function handle_get_orders(PDO $pdo) {
 
         foreach ($orders as &$ord) {
             $ord['items'] = $items_by_order[$ord['id']] ?? [];
-            $progress = 10;
+            $progress = 0;
             switch ($ord['order_status']) {
-                case 'pending': $progress = 20; break;
-                case 'confirmed': $progress = 40; break;
-                case 'grilling': $progress = 70; break;
-                case 'ready': $progress = 90; break;
+                case 'pending': $progress = 0; break;
+                case 'confirmed': $progress = 25; break;
+                case 'grilling': $progress = 50; break;
+                case 'ready': $progress = 75; break;
                 case 'completed': $progress = 100; break;
                 case 'cancelled': $progress = 0; break;
             }
@@ -105,12 +105,12 @@ function handle_get_orders(PDO $pdo) {
 
         foreach ($orders as &$ord) {
             $ord['items'] = $items_by_order[$ord['id']] ?? [];
-            $progress = 10;
+            $progress = 0;
             switch ($ord['order_status']) {
-                case 'pending': $progress = 20; break;
-                case 'confirmed': $progress = 40; break;
-                case 'grilling': $progress = 70; break;
-                case 'ready': $progress = 90; break;
+                case 'pending': $progress = 0; break;
+                case 'confirmed': $progress = 25; break;
+                case 'grilling': $progress = 50; break;
+                case 'ready': $progress = 75; break;
                 case 'completed': $progress = 100; break;
                 case 'cancelled': $progress = 0; break;
             }
@@ -143,13 +143,13 @@ function handle_get_orders(PDO $pdo) {
         $item_stmt->execute([$order['id']]);
         $order['items'] = $item_stmt->fetchAll();
 
-        // Calculate progress percentage for customer tracker
-        $progress = 10;
+        // Calculate progress percentage for customer tracker (5 stages: 0%, 25%, 50%, 75%, 100%)
+        $progress = 0;
         switch ($order['order_status']) {
-            case 'pending': $progress = 20; break;
-            case 'confirmed': $progress = 40; break;
-            case 'grilling': $progress = 70; break;
-            case 'ready': $progress = 90; break;
+            case 'pending': $progress = 0; break;
+            case 'confirmed': $progress = 25; break;
+            case 'grilling': $progress = 50; break;
+            case 'ready': $progress = 75; break;
             case 'completed': $progress = 100; break;
             case 'cancelled': $progress = 0; break;
         }

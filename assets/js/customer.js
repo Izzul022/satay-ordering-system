@@ -1023,92 +1023,151 @@ const CustomerApp = {
  },
 
  renderTrackerUI(order) {
- const trackerContainer = document.getElementById('tracker-details-container');
- if (!trackerContainer) return;
+    const trackerContainer = document.getElementById('tracker-details-container');
+    if (!trackerContainer) return;
 
- const stages = ['pending', 'confirmed', 'grilling', 'ready', 'completed'];
- const stageLabels = {
- pending: '1. Order Sent',
- confirmed: '2. Kitchen Accepted',
- grilling: '3. Charcoal Grilling ',
- ready: '4. Ready for You ',
- completed: '5. Completed '
- };
+    const stages = ['pending', 'confirmed', 'grilling', 'ready', 'completed'];
+    const stageLabels = {
+      pending: '1. Order Sent',
+      confirmed: '2. Kitchen Accepted',
+      grilling: '3. Charcoal Grilling',
+      ready: '4. Ready for You',
+      completed: '5. Completed'
+    };
 
- const currentIdx = stages.indexOf(order.order_status);
+    const stageHeroMeta = {
+      pending: {
+        icon: '📋',
+        class: 'status-anim-pending',
+        title: 'Order Queued & Sent!',
+        subtitle: 'Your ticket has reached the cashier & kitchen display. Awaiting chef acceptance.'
+      },
+      confirmed: {
+        icon: '👨‍🍳',
+        class: 'status-anim-confirmed',
+        title: 'Kitchen Accepted Order!',
+        subtitle: 'Chef has accepted your order! Preparing fresh skewers & marinades.'
+      },
+      grilling: {
+        icon: '🔥',
+        class: 'status-anim-grilling',
+        title: 'Sizzling on Charcoal Grill!',
+        subtitle: 'Skewers are grilling over red-hot charcoal with sweet honey glaze.'
+      },
+      ready: {
+        icon: '🛎️',
+        class: 'status-anim-ready',
+        title: 'Ready For Pickup / Serving!',
+        subtitle: 'Hot and freshly plated! Please collect from the counter or wait at your table.'
+      },
+      completed: {
+        icon: '🎉',
+        class: 'status-anim-completed',
+        title: 'Order Completed!',
+        subtitle: 'Thank you for dining with Sate Tulang Madu! Enjoy your meal.'
+      }
+    };
 
- const timelineHtml = stages.map((stg, idx) => {
- const isCompleted = idx < currentIdx;
- const isActive = idx === currentIdx;
- return `
- <div class="tracker-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}">
- <div class="step-node">${isCompleted ? '' : (idx + 1)}</div>
- <div class="step-label">${stageLabels[stg]}</div>
- </div>
- `;
- }).join('');
+    const currentIdx = Math.max(0, stages.indexOf(order.order_status));
+    const heroInfo = stageHeroMeta[order.order_status] || stageHeroMeta.pending;
 
- const itemsHtml = (order.items || []).map(it => `
- <div style="display:flex; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid var(--border-color); font-size:0.88rem;">
- <div>
- <strong>${it.quantity}x</strong> ${SatayApp.escapeHtml(it.item_name)}
- ${it.spicy_level !== 'normal' ? `<span style="font-size:0.75rem; color:var(--primary);">(${it.spicy_level})</span>` : ''}
- </div>
- <div style="font-weight:700; color:var(--gold);">${SatayApp.formatPrice(it.total_price)}</div>
- </div>
- `).join('');
+    // Timeline percentage calculation (0%, 25%, 50%, 75%, 100%)
+    const progressWidth = Math.round((currentIdx / (stages.length - 1)) * 100);
 
- trackerContainer.innerHTML = `
- <div style="text-align:center; margin-bottom:1.5rem;">
- <div class="badge badge-gold" style="font-size:0.9rem; padding:0.4rem 1rem; margin-bottom:0.5rem;">
- ORDER #${SatayApp.escapeHtml(order.order_number)}
- </div>
- <h2 style="font-size:1.6rem; text-transform:capitalize;">
- ${order.order_status === 'grilling' ? ' Grilling on Charcoal...' : 
- order.order_status === 'ready' ? ' Ready for Pickup / Serving!' : 
- order.order_status === 'completed' ? ' Order Completed' : 'Cooking Soon'}
- </h2>
- <p style="color:var(--text-muted); font-size:0.88rem;">
- Dining Mode: <strong>${(order.dining_type || '').toUpperCase().replace('_', ' ')}</strong> 
- ${order.table_number ? `• Table ${SatayApp.escapeHtml(order.table_number)}` : ''}
- </p>
- </div>
+    const stepIcons = ['📋', '👨‍🍳', '🔥', '🛎️', '✅'];
 
- <!-- Progress Bar -->
- <div class="tracker-timeline">
- <div class="tracker-progress-line" style="width: ${order.progress_percent}%;"></div>
- ${timelineHtml}
- </div>
+    const timelineHtml = stages.map((stg, idx) => {
+      const isCompleted = idx < currentIdx;
+      const isActive = idx === currentIdx;
+      return `
+        <div class="tracker-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}">
+          <div class="step-node">
+            ${isCompleted ? '<span class="step-check">✓</span>' : (isActive ? `<span class="step-active-icon">${stepIcons[idx]}</span>` : `<span class="step-num">${idx + 1}</span>`)}
+          </div>
+          <div class="step-label">${stageLabels[stg]}</div>
+        </div>
+      `;
+    }).join('');
 
- <div style="background:var(--bg-card); border-radius:var(--radius-md); padding:1.25rem; border:1px solid var(--border-color); margin-bottom:1.5rem;">
- <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
- <span style="color:var(--text-muted);">Estimated Prep Time:</span>
- <strong style="color:var(--primary);">~${order.estimated_minutes} Minutes</strong>
- </div>
- <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
- <span style="color:var(--text-muted);">Payment Status:</span>
- <strong style="text-transform:uppercase; color:${order.payment_status === 'paid' ? 'var(--success)' : 'var(--gold)'};">${order.payment_status}</strong>
- </div>
- <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--border-color);">
- <div style="font-weight:700; margin-bottom:0.5rem;">Ordered Items:</div>
- ${itemsHtml}
- </div>
- <div style="display:flex; justify-content:space-between; margin-top:1rem; font-size:1.1rem; font-weight:800;">
- <span>Total Amount:</span>
- <span style="color:var(--gold);">${SatayApp.formatPrice(order.total_amount)}</span>
- </div>
- </div>
+    const itemsHtml = (order.items || []).map(it => `
+      <div style="display:flex; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid var(--border-color); font-size:0.88rem;">
+        <div>
+          <strong>${it.quantity}x</strong> ${SatayApp.escapeHtml(it.item_name)}
+          ${it.spicy_level && it.spicy_level !== 'normal' ? `<span style="font-size:0.75rem; color:var(--primary);">(${it.spicy_level})</span>` : ''}
+        </div>
+        <div style="font-weight:700; color:var(--gold);">${SatayApp.formatPrice(it.total_price)}</div>
+      </div>
+    `).join('');
 
- <div style="display:flex; gap:0.75rem; justify-content:center;">
- <button class="btn btn-secondary" onclick="SatayApp.printThermalReceipt(${JSON.stringify(order).replace(/"/g, '&quot;')})">
- View / Print Receipt
- </button>
- <button class="btn btn-primary" onclick="CustomerApp.stopLiveTracking()">
- Done
- </button>
- </div>
- `;
- },
+    // Table display formatting (avoid "Table Table 2")
+    let tableInfo = '';
+    if (order.table_number) {
+      const rawTable = SatayApp.escapeHtml(order.table_number);
+      tableInfo = ` • ${rawTable.toLowerCase().startsWith('table') ? rawTable : `Table ${rawTable}`}`;
+    }
+
+    trackerContainer.innerHTML = `
+      <!-- Hero Status Header with Animations -->
+      <div class="tracker-hero-box">
+        <div style="display:flex; justify-content:center; align-items:center; gap:0.5rem; margin-bottom:0.6rem; flex-wrap:wrap;">
+          <div class="tracker-live-pill">
+            <span class="live-beacon"></span>
+            <span>Live Kitchen Sync</span>
+          </div>
+          <div class="badge badge-gold" style="font-size:0.75rem; padding:3px 10px; margin-bottom:0.75rem;">
+            ORDER #${SatayApp.escapeHtml(order.order_number)}
+          </div>
+        </div>
+
+        <div class="tracker-hero-icon-wrap ${heroInfo.class}">
+          <span class="hero-anim-icon">${heroInfo.icon}</span>
+        </div>
+
+        <h2 class="tracker-hero-title">${heroInfo.title}</h2>
+        <p class="tracker-hero-subtitle">${heroInfo.subtitle}</p>
+
+        <p style="color:var(--text-muted); font-size:0.85rem; font-weight:500;">
+          Dining Mode: <strong style="color:var(--text-main);">${(order.dining_type || '').toUpperCase().replace('_', ' ')}</strong>${tableInfo}
+        </p>
+      </div>
+
+      <!-- Animated Progress Bar & Steps -->
+      <div class="tracker-timeline">
+        <div class="tracker-progress-line" style="width: ${progressWidth}%;"></div>
+        ${timelineHtml}
+      </div>
+
+      <!-- Order Details Summary -->
+      <div style="background:var(--bg-card); border-radius:var(--radius-md); padding:1.25rem; border:1px solid var(--border-color); margin-bottom:1.5rem;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+          <span style="color:var(--text-muted); font-size:0.88rem;">Estimated Prep Time:</span>
+          <strong style="color:var(--primary); font-size:0.95rem;">~${order.estimated_minutes || 15} Minutes</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+          <span style="color:var(--text-muted); font-size:0.88rem;">Payment Status:</span>
+          <strong style="text-transform:uppercase; font-size:0.88rem; color:${order.payment_status === 'paid' ? 'var(--success)' : 'var(--gold)'};">${order.payment_status}</strong>
+        </div>
+        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--border-color);">
+          <div style="font-weight:700; font-size:0.88rem; margin-bottom:0.5rem;">Ordered Items:</div>
+          ${itemsHtml}
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:1rem; font-size:1.15rem; font-weight:800; border-top:1px dashed var(--border-color); padding-top:0.75rem;">
+          <span>Total Amount:</span>
+          <span style="color:var(--gold);">${SatayApp.formatPrice(order.total_amount)}</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex; gap:0.75rem; justify-content:center;">
+        <button class="btn btn-secondary" onclick="SatayApp.printThermalReceipt(${JSON.stringify(order).replace(/"/g, '&quot;')})">
+          View / Print Receipt
+        </button>
+        <button class="btn btn-primary" onclick="CustomerApp.stopLiveTracking()">
+          Done
+        </button>
+      </div>
+    `;
+  },
 
  // Show past orders modal (Enhanced with DB query for registered users & local search for guests)
  async showOrderHistoryModal() {
