@@ -31,9 +31,71 @@ $currentUser = get_current_auth_user();
 </head>
 <body>
 
+    <!-- App Side Navigation Backdrop & Drawer -->
+    <div class="app-sidenav-backdrop" id="app-sidenav-backdrop" onclick="SatayApp.closeSideNav()"></div>
+    <aside class="app-sidenav" id="app-side-nav">
+        <div class="sidenav-header">
+            <div class="sidenav-brand">
+                <div class="nav-logo-icon" style="width:34px; height:34px; font-size:0.9rem; background:var(--gold);">K</div>
+                <div>
+                    <div class="sidenav-brand-title">KITCHEN & POS</div>
+                    <div class="sidenav-brand-sub">Sate Tulang Madu Ops</div>
+                </div>
+            </div>
+            <button type="button" class="sidenav-close-btn" onclick="SatayApp.closeSideNav()" title="Close menu">&times;</button>
+        </div>
+
+        <div class="sidenav-user-card">
+            <div class="sidenav-avatar" style="background:var(--gold);"><?php echo strtoupper(substr($currentUser['full_name'] ?? 'Staff', 0, 1)); ?></div>
+            <div class="sidenav-user-info">
+                <div class="sidenav-user-name"><?php echo htmlspecialchars($currentUser['full_name'] ?? 'Kitchen Staff'); ?></div>
+                <div class="sidenav-user-role"><?php echo ucfirst($currentUser['role'] ?? 'Staff'); ?> Operations</div>
+            </div>
+        </div>
+
+        <nav class="sidenav-body">
+            <div class="sidenav-section-title">Kitchen Operations</div>
+            <button type="button" class="sidenav-link client-tab-btn active" data-tab="kds" onclick="ClientApp.switchTab('kds'); SatayApp.closeSideNav()">
+                <span class="sidenav-link-icon">🍳</span>
+                <span>Live Kitchen Display (KDS)</span>
+            </button>
+            <button type="button" class="sidenav-link client-tab-btn" data-tab="pos" onclick="ClientApp.switchTab('pos'); SatayApp.closeSideNav()">
+                <span class="sidenav-link-icon">💵</span>
+                <span>Walk-In Cashier POS</span>
+            </button>
+            <button type="button" class="sidenav-link client-tab-btn" data-tab="stock" onclick="ClientApp.switchTab('stock'); SatayApp.closeSideNav()">
+                <span class="sidenav-link-icon">📦</span>
+                <span>Meat & Stock Control</span>
+            </button>
+
+            <div class="sidenav-section-title">Quick Portals</div>
+            <?php if ($currentUser['role'] === 'admin'): ?>
+                <a href="admin.php" class="sidenav-link">
+                    <span class="sidenav-link-icon">👑</span>
+                    <span>Admin Control Center</span>
+                </a>
+            <?php endif; ?>
+            <a href="index.php" class="sidenav-link">
+                <span class="sidenav-link-icon">🛒</span>
+                <span>Customer Ordering View</span>
+            </a>
+        </nav>
+
+        <div class="sidenav-footer">
+            <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(181, 61, 46, 0.3); width:100%; justify-content:center;">
+                Logout
+            </a>
+        </div>
+    </aside>
+
     <!-- Top Navigation Bar -->
     <header class="navbar">
-        <div class="nav-brand">
+        <div class="nav-brand" style="display:flex; align-items:center;">
+            <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="nav-logo-icon" style="background: var(--gold);">K</div>
             <div class="brand-text">
                 <h1>KITCHEN DISPLAY & POS</h1>

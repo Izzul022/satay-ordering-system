@@ -94,22 +94,48 @@ const SatayApp = {
  }
  },
 
- // Modal Manager
- openModal(modalId) {
- const modal = document.getElementById(modalId);
- if (modal) {
- modal.classList.add('open');
- document.body.style.overflow = 'hidden';
- }
- },
+  // Modal Manager
+  openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+  },
 
- closeModal(modalId) {
- const modal = document.getElementById(modalId);
- if (modal) {
- modal.classList.remove('open');
- document.body.style.overflow = '';
- }
- },
+  closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+  },
+
+  // App Side Navigation Drawer Manager
+  openSideNav() {
+    const sideNav = document.getElementById('app-side-nav');
+    const backdrop = document.getElementById('app-sidenav-backdrop');
+    if (sideNav) sideNav.classList.add('open');
+    if (backdrop) backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  },
+
+  closeSideNav() {
+    const sideNav = document.getElementById('app-side-nav');
+    const backdrop = document.getElementById('app-sidenav-backdrop');
+    if (sideNav) sideNav.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+  },
+
+  toggleSideNav() {
+    const sideNav = document.getElementById('app-side-nav');
+    if (sideNav && sideNav.classList.contains('open')) {
+      this.closeSideNav();
+    } else {
+      this.openSideNav();
+    }
+  },
 
   // Thermal Receipt Builder & Printer
   printThermalReceipt(order) {

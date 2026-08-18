@@ -40,9 +40,114 @@ if (!$currentUser && !$guestInfo) {
 </head>
 <body>
 
+    <!-- App Side Navigation Backdrop & Drawer -->
+    <div class="app-sidenav-backdrop" id="app-sidenav-backdrop" onclick="SatayApp.closeSideNav()"></div>
+    <aside class="app-sidenav" id="app-side-nav">
+        <div class="sidenav-header">
+            <div class="sidenav-brand">
+                <div class="nav-logo-icon" style="width:34px; height:34px; font-size:0.9rem;">S</div>
+                <div>
+                    <div class="sidenav-brand-title">SATE TULANG MADU</div>
+                    <div class="sidenav-brand-sub">Authentic Charcoal Skewers</div>
+                </div>
+            </div>
+            <button type="button" class="sidenav-close-btn" onclick="SatayApp.closeSideNav()" title="Close menu">&times;</button>
+        </div>
+
+        <?php if ($currentUser): ?>
+            <div class="sidenav-user-card">
+                <div class="sidenav-avatar"><?php echo strtoupper(substr($currentUser['full_name'], 0, 1)); ?></div>
+                <div class="sidenav-user-info">
+                    <div class="sidenav-user-name"><?php echo htmlspecialchars($currentUser['full_name']); ?></div>
+                    <div class="sidenav-user-role"><?php echo ucfirst($currentUser['role']); ?> Account</div>
+                </div>
+            </div>
+        <?php elseif ($guestInfo): ?>
+            <div class="sidenav-user-card">
+                <div class="sidenav-avatar" style="background:var(--gold);">G</div>
+                <div class="sidenav-user-info">
+                    <div class="sidenav-user-name"><?php echo htmlspecialchars($guestInfo['guest_name']); ?></div>
+                    <div class="sidenav-user-role">Guest Mode</div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <nav class="sidenav-body">
+            <div class="sidenav-section-title">Menu & Ordering</div>
+            <button type="button" class="sidenav-link active" onclick="SatayApp.closeSideNav()">
+                <span class="sidenav-link-icon">🍗</span>
+                <span>Satay Menu Catalog</span>
+            </button>
+            <button type="button" class="sidenav-link" onclick="SatayApp.closeSideNav(); CustomerApp.showOrderHistoryModal()">
+                <span class="sidenav-link-icon">📋</span>
+                <span>My Orders & History</span>
+            </button>
+
+            <div class="sidenav-section-title">Dining Modes</div>
+            <button type="button" class="sidenav-link" onclick="SatayApp.closeSideNav(); document.querySelector('.mode-btn[data-mode=dine_in]')?.click()">
+                <span class="sidenav-link-icon">🍽️</span>
+                <span>Dine-In (Table Service)</span>
+            </button>
+            <button type="button" class="sidenav-link" onclick="SatayApp.closeSideNav(); document.querySelector('.mode-btn[data-mode=takeaway]')?.click()">
+                <span class="sidenav-link-icon">🥡</span>
+                <span>Takeaway (Bungkus)</span>
+            </button>
+            <button type="button" class="sidenav-link" onclick="SatayApp.closeSideNav(); document.querySelector('.mode-btn[data-mode=delivery]')?.click()">
+                <span class="sidenav-link-icon">🛵</span>
+                <span>Home Delivery</span>
+            </button>
+
+            <?php if ($currentUser && $currentUser['role'] === 'customer'): ?>
+                <div class="sidenav-section-title">Account</div>
+                <button type="button" class="sidenav-link" onclick="SatayApp.closeSideNav(); CustomerApp.openProfileModal()">
+                    <span class="sidenav-link-icon">👤</span>
+                    <span>My Saved Profile</span>
+                </button>
+            <?php endif; ?>
+
+            <?php if ($currentUser && in_array($currentUser['role'], ['admin', 'staff'])): ?>
+                <div class="sidenav-section-title">Staff Portals</div>
+                <?php if ($currentUser['role'] === 'admin'): ?>
+                    <a href="admin.php" class="sidenav-link">
+                        <span class="sidenav-link-icon">👑</span>
+                        <span>Admin Control Center</span>
+                    </a>
+                <?php endif; ?>
+                <a href="kitchen.php" class="sidenav-link">
+                    <span class="sidenav-link-icon">🍳</span>
+                    <span>Kitchen Display (KDS)</span>
+                </a>
+            <?php endif; ?>
+        </nav>
+
+        <div class="sidenav-footer">
+            <?php if ($currentUser): ?>
+                <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(181, 61, 46, 0.3); width:100%; justify-content:center;">
+                    Sign Out
+                </a>
+            <?php elseif ($guestInfo): ?>
+                <a href="login.php?tab=login" class="btn btn-primary btn-sm" style="width:100%; justify-content:center; margin-bottom:0.35rem;">
+                    Sign In / Register
+                </a>
+                <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(181, 61, 46, 0.3); width:100%; justify-content:center;">
+                    Exit Guest Mode
+                </a>
+            <?php else: ?>
+                <a href="login.php?tab=login" class="btn btn-primary btn-sm" style="width:100%; justify-content:center;">
+                    Sign In / Register
+                </a>
+            <?php endif; ?>
+        </div>
+    </aside>
+
     <!-- Top Navigation Bar -->
     <header class="navbar">
-        <div class="nav-brand">
+        <div class="nav-brand" style="display:flex; align-items:center;">
+            <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <div class="nav-logo-icon">S</div>
             <div class="brand-text">
                 <h1>SATE TULANG MADU</h1>
