@@ -28,16 +28,6 @@ A production-grade, full-featured **Satay Restaurant & Kitchen Management System
 
 ---
 
-## Default System Credentials
-
-| Role | Default Username | Default Password | Target View |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin` | `admin123` | `admin.php` |
-| **Kitchen Staff** | `staff` | `staff123` | `kitchen.php` |
-| **Customer** | *(Register or Guest Mode)* | *(User Defined)* | `index.php` |
-
----
-
 ## How to Run
 
 ### Option A: Using XAMPP Apache
