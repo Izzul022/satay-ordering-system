@@ -30,7 +30,7 @@ if (!in_array($activeTab, ['login', 'register', 'guest'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sign In - Sate Tulang Madu</title>
     <meta name="description" content="Sign in, register, or order in guest mode for authentic charcoal-grilled skewers at Sate Tulang Madu.">
     <link rel="stylesheet" href="assets/css/style.css">

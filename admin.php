@@ -17,7 +17,7 @@ $currentUser = get_current_auth_user();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Admin Dashboard & Management - Sate Tulang Madu</title>
     <meta name="description" content="Executive analytics, menu catalog CRUD, order master view, and QR code manager for Sate Tulang Madu.">
     <link rel="stylesheet" href="assets/css/style.css">

@@ -17,7 +17,7 @@ $currentUser = get_current_auth_user();
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Kitchen Display System & POS - Sate Tulang Madu</title>
     <meta name="description" content="Dedicated Kitchen Display System (KDS), Grill Queue Tracker, and Walk-In Cashier POS for Sate Tulang Madu.">
     <link rel="stylesheet" href="assets/css/style.css">

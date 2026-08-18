@@ -26,7 +26,7 @@ if (!$currentUser && !$guestInfo) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sate Tulang Madu - Charcoal Grilled Skewers & Platters</title>
     <meta name="description" content="Order authentic charcoal-grilled Sate Tulang Madu, Satay Ayam, Daging, Kambing, and Sharing Platters with rich peanut sauce for Dine-In, Takeaway, and Delivery.">
     <link rel="stylesheet" href="assets/css/style.css">
