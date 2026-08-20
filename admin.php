@@ -90,6 +90,18 @@ $currentUser = get_current_auth_user();
 
     <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
     <aside class="store-sidebar" id="store-sidebar">
+        <!-- Sidebar Brand Header & Toggle Button -->
+        <div class="store-sb-header">
+            <div class="store-sb-brand">
+                <span>👑</span> ADMIN CONTROL CENTER
+            </div>
+            <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Close Navigation Menu" aria-label="Toggle Side Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
         <!-- Admin User Card -->
         <div class="store-sb-user">
             <div class="store-sb-avatar" style="background:var(--info);"><?php echo strtoupper(substr($currentUser['full_name'] ?? 'Admin', 0, 1)); ?></div>
@@ -139,30 +151,12 @@ $currentUser = get_current_auth_user();
     <!-- ========== MAIN CANVAS (Content Area) ========== -->
     <div class="store-canvas" id="store-canvas">
 
-        <!-- Store Top Bar -->
-        <header class="store-topbar">
-            <div class="store-topbar-brand">
-                <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <div class="nav-logo-icon" style="background:var(--info);">A</div>
-                <div class="brand-text">
-                    <h1>ADMIN CONTROL CENTER</h1>
-                    <p>Sate Tulang Madu Management</p>
-                </div>
-            </div>
-
-            <div class="store-topbar-actions" style="margin-left:auto;">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminApp.fetchDashboardStats(); SatayApp.showToast('Data refreshed!', 'info');" style="font-size:0.78rem;">
-                    🔄 Refresh Data
-                </button>
-                <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.78rem; padding:0.35rem 0.75rem; border-color:rgba(181, 61, 46, 0.3); color:var(--danger);">
-                    Logout
-                </a>
-            </div>
-        </header>
+        <!-- Floating Navigation Toggle Button (visible on mobile / when sidebar is closed) -->
+        <button type="button" class="floating-nav-btn" onclick="SatayApp.toggleSideNav()" title="Toggle Navigation Menu" aria-label="Toggle Side Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
         <!-- Main Content Area -->
         <main class="store-content container-fluid">

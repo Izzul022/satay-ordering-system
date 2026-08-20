@@ -136,6 +136,18 @@ if (!$currentUser) {
 
     <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
     <aside class="store-sidebar" id="store-sidebar">
+        <!-- Sidebar Brand Header & Toggle Button -->
+        <div class="store-sb-header">
+            <div class="store-sb-brand">
+                <span>🍖</span> SATE TULANG MADU
+            </div>
+            <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Close Navigation Menu" aria-label="Toggle Side Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
         <!-- User Card -->
         <?php if ($currentUser): ?>
             <div class="store-sb-user">
@@ -206,83 +218,12 @@ if (!$currentUser) {
     <!-- ========== MAIN CANVAS (Content Area) ========== -->
     <div class="store-canvas" id="store-canvas">
 
-        <!-- Store Top Bar -->
-        <header class="store-topbar">
-            <div class="store-topbar-brand">
-                <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <div class="nav-logo-icon">S</div>
-                <div class="brand-text">
-                    <h1>SATE TULANG MADU</h1>
-                    <p>Authentic Charcoal Grilled Skewers</p>
-                </div>
-            </div>
-
-            <div class="store-topbar-search">
-                <input type="text" id="search-menu" class="form-input" placeholder="Search skewers, platters, sides...">
-            </div>
-
-            <!-- Dining Badge (desktop only) -->
-            <div class="store-topbar-dining-badge" id="store-topbar-dining-badge">
-                🍽️ <span id="topbar-dining-label">Table 01 (Dine-In)</span>
-            </div>
-
-            <div class="store-topbar-actions">
-                <button class="btn btn-secondary btn-sm" onclick="CustomerApp.showOrderHistoryModal()" id="btn-my-orders" style="font-size:0.78rem;">
-                    My Orders
-                </button>
-
-                <div id="customer-nav-auth-container">
-                    <?php if ($currentUser): ?>
-                        <div class="customer-profile-menu">
-                            <button class="profile-trigger-btn" onclick="CustomerApp.toggleProfileDropdown(event)">
-                                <span id="nav-user-name"><?php echo htmlspecialchars($currentUser['full_name']); ?></span>
-                                <span style="font-size:0.65rem;">&#9662;</span>
-                            </button>
-                            <div class="profile-dropdown-menu" id="profile-dropdown-menu">
-                                <?php if ($currentUser['role'] === 'customer'): ?>
-                                    <button class="profile-dropdown-item" onclick="CustomerApp.openProfileModal()">
-                                        My Saved Profile
-                                    </button>
-                                    <button class="profile-dropdown-item" onclick="CustomerApp.showOrderHistoryModal()">
-                                        My Past Orders
-                                    </button>
-                                    <div class="profile-dropdown-divider"></div>
-                                <?php elseif ($currentUser['role'] === 'staff'): ?>
-                                    <a href="kitchen.php" class="profile-dropdown-item">
-                                        Open Kitchen Display
-                                    </a>
-                                    <div class="profile-dropdown-divider"></div>
-                                <?php elseif ($currentUser['role'] === 'admin'): ?>
-                                    <a href="admin.php" class="profile-dropdown-item">
-                                        Admin Control Center
-                                    </a>
-                                    <a href="kitchen.php" class="profile-dropdown-item">
-                                        Kitchen Display (KDS)
-                                    </a>
-                                    <div class="profile-dropdown-divider"></div>
-                                <?php endif; ?>
-                                <a href="logout.php?redirect=index.php" class="profile-dropdown-item" style="color:var(--danger);">
-                                    Sign Out
-                                </a>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <div style="display:flex; align-items:center; gap:0.5rem;">
-                            <button type="button" class="btn btn-primary btn-sm" onclick="CustomerApp.openAuthModal('register')" style="font-size:0.78rem; padding:0.4rem 0.85rem; font-weight:600;">
-                                Sign In / Register
-                            </button>
-                            <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.72rem; padding:0.3rem 0.5rem; color:var(--danger);" title="Exit">
-                                Exit
-                            </a>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </header>
+        <!-- Floating Navigation Toggle Button (visible on mobile / when sidebar is closed) -->
+        <button type="button" class="floating-nav-btn" onclick="SatayApp.toggleSideNav()" title="Toggle Navigation Menu" aria-label="Toggle Side Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
         <!-- Store Main Content -->
         <main class="store-content">
@@ -298,18 +239,7 @@ if (!$currentUser) {
                     </div>
                 </div>
                 <div class="store-hero-right">
-                    <!-- Dining Mode Selector (visible on mobile / as secondary control) -->
-                    <div class="dining-mode-selector" style="background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.15);">
-                        <button type="button" class="mode-btn active" data-mode="dine_in" style="color:rgba(255,255,255,0.7);">
-                            Dine-In
-                        </button>
-                        <button type="button" class="mode-btn" data-mode="takeaway" style="color:rgba(255,255,255,0.7);">
-                            Takeaway
-                        </button>
-                    </div>
-                    <div class="store-hero-tip">
-                        Tip: Satay skewers require a minimum order of 5 sticks per meat type.
-                    </div>
+                    <img src="https://images.unsplash.com/photo-1529543544282-ea669407fca3?auto=format&fit=crop&w=600&q=80" alt="Sate Tulang Madu Grill" class="store-hero-img">
                 </div>
             </section>
 
@@ -319,10 +249,14 @@ if (!$currentUser) {
             </nav>
 
             <!-- Section Header -->
-            <div class="store-section-header">
-                <h2 id="store-section-title">Featured Menu Catalog</h2>
-                <div class="store-section-meta">
-                    <span class="store-item-count" id="store-item-count">0 items available</span>
+            <div class="store-section-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+                <div>
+                    <h2 id="store-section-title">Featured Menu Catalog</h2>
+                    <div class="store-section-meta">
+                        <span class="store-item-count" id="store-item-count">0 items available</span>
+                    </div>
+                <div style="position:relative; width:100%; max-width:320px;">
+                    <input type="text" id="search-menu" class="form-input" placeholder="🔍 Search skewers, platters..." style="width:100%; border-radius:var(--radius-full); padding:0.5rem 1rem; font-size:0.85rem;">
                 </div>
             </div>
 

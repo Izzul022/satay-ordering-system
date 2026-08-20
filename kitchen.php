@@ -97,6 +97,18 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
 
     <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
     <aside class="store-sidebar" id="store-sidebar">
+        <!-- Sidebar Brand Header & Toggle Button -->
+        <div class="store-sb-header">
+            <div class="store-sb-brand">
+                <span><?php echo $isDrinksStaff ? '🥤' : '🍳'; ?></span> <?php echo $isDrinksStaff ? 'DRINK BAR STATION' : 'KITCHEN OPS & POS'; ?>
+            </div>
+            <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Close Navigation Menu" aria-label="Toggle Side Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
         <!-- Staff User Card -->
         <div class="store-sb-user">
             <div class="store-sb-avatar" style="background:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>;">
@@ -150,43 +162,12 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
     <!-- ========== MAIN CANVAS (Content Area) ========== -->
     <div class="store-canvas" id="store-canvas">
 
-        <!-- Store Top Bar -->
-        <header class="store-topbar">
-            <div class="store-topbar-brand">
-                <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <div class="nav-logo-icon" style="background:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>;">
-                    <?php echo $isDrinksStaff ? '🥤' : 'K'; ?>
-                </div>
-                <div class="brand-text">
-                    <h1><?php echo $isDrinksStaff ? 'DRINK BAR STATION & KDS' : 'KITCHEN DISPLAY & POS'; ?></h1>
-                    <p><?php echo $isDrinksStaff ? 'Real-Time Beverage Orders Queue' : 'Sate Tulang Madu Kitchen Ops'; ?></p>
-                </div>
-            </div>
-
-            <div class="store-topbar-actions" style="margin-left:auto;">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="ClientApp.enableAndTestNotification()" title="Test phone ringtone and vibration" style="font-size:0.78rem;">
-                    🔔 Test Alert
-                </button>
-                <label style="display:flex; align-items:center; gap:5px; font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
-                    <input type="checkbox" id="sound-alert-toggle" checked style="accent-color:var(--primary);">
-                    <span>Sound</span>
-                </label>
-
-                <?php if ($currentUser['role'] === 'admin'): ?>
-                    <a href="admin.php" class="btn btn-secondary btn-sm" style="font-size:0.78rem;">
-                        Admin Panel
-                    </a>
-                <?php endif; ?>
-
-                <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.78rem; padding:0.35rem 0.75rem; border-color:rgba(181, 61, 46, 0.3); color:var(--danger);">
-                    Logout
-                </a>
-            </div>
-        </header>
+        <!-- Floating Navigation Toggle Button (visible on mobile / when sidebar is closed) -->
+        <button type="button" class="floating-nav-btn" onclick="SatayApp.toggleSideNav()" title="Toggle Navigation Menu" aria-label="Toggle Side Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
 
         <!-- Main Content Area -->
         <main class="store-content container-fluid">
