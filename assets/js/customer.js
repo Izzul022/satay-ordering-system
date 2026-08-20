@@ -220,6 +220,7 @@ const CustomerApp = {
       this.diningType = 'dine_in';
       this.populateTableDropdown();
       this.updateDiningModeUI();
+      this.updateStoreLayoutUI();
       setTimeout(() => {
         SatayApp.showToast(`🍽️ Welcome! Ordering for Table ${this.tableNumber}`, 'success');
       }, 400);
@@ -227,6 +228,38 @@ const CustomerApp = {
 
     if (track) {
       this.startLiveTracking(track);
+    }
+  },
+
+  // Update sidebar table chip + topbar dining badge
+  updateStoreLayoutUI() {
+    // Sidebar table chip
+    const tableChip = document.getElementById('store-sb-table-chip');
+    const tableLabel = document.getElementById('store-sb-table-label');
+    if (tableChip && this.tableNumber) {
+      tableChip.style.display = 'flex';
+      if (tableLabel) tableLabel.textContent = `Table ${this.tableNumber}`;
+    } else if (tableChip) {
+      tableChip.style.display = 'none';
+    }
+
+    // Topbar dining badge
+    const topbarBadge = document.getElementById('topbar-dining-label');
+    if (topbarBadge) {
+      if (this.tableNumber && this.diningType === 'dine_in') {
+        topbarBadge.textContent = `Table ${this.tableNumber} (Dine-In)`;
+      } else if (this.diningType === 'takeaway') {
+        topbarBadge.textContent = 'Takeaway (Bungkus)';
+      } else {
+        topbarBadge.textContent = 'Dine-In';
+      }
+    }
+
+    // Update topbar badge emoji
+    const topbarBadgeWrap = document.getElementById('store-topbar-dining-badge');
+    if (topbarBadgeWrap) {
+      const emoji = this.diningType === 'takeaway' ? '🥡' : '🍽️';
+      topbarBadgeWrap.innerHTML = `${emoji} <span id="topbar-dining-label">${topbarBadge ? topbarBadge.textContent : ''}</span>`;
     }
   },
 
@@ -427,11 +460,18 @@ const CustomerApp = {
  setDiningMode(mode) {
  this.diningType = mode;
  this.updateDiningModeUI();
+ this.updateStoreLayoutUI();
  this.updateCartSummary();
  },
 
  updateDiningModeUI() {
+    // Hero mode buttons
     document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === this.diningType);
+    });
+
+    // Sidebar dining segment buttons
+    document.querySelectorAll('.store-sb-dining-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.mode === this.diningType);
     });
 
@@ -460,30 +500,116 @@ const CustomerApp = {
   },
 
  renderCategoryNav() {
- const nav = document.getElementById('category-nav');
- if (!nav) return;
+   // 1. Horizontal ribbon pills (inside store-content)
+   const ribbon = document.getElementById('store-category-ribbon');
+   if (ribbon) {
+     let ribbonHtml = `
+       <button class="cat-pill ${this.activeCategory === 'all' ? 'active' : ''}" onclick="CustomerApp.filterCategory('all')">
+         🏪 All Items
+       </button>
+     `;
+     this.menuCategories.forEach(cat => {
+       ribbonHtml += `
+         <button class="cat-pill ${this.activeCategory == cat.id ? 'active' : ''}" onclick="CustomerApp.filterCategory(${cat.id})">
+           <span>${cat.icon || ''}</span> ${cat.name}
+         </button>
+       `;
+     });
+     ribbon.innerHTML = ribbonHtml;
+   }
 
- let html = `
- <button class="cat-pill ${this.activeCategory === 'all' ? 'active' : ''}" onclick="CustomerApp.filterCategory('all')">
- All Items
- </button>
- `;
+   // 2. Sidebar category links (desktop persistent sidebar)
+   const sbCats = document.getElementById('store-sb-categories');
+   if (sbCats) {
+     let sbHtml = `
+       <button type="button" class="store-sb-link ${this.activeCategory === 'all' ? 'active' : ''}" onclick="CustomerApp.sidebarFilterCategory('all')">
+         <span class="store-sb-link-icon">🏪</span>
+         <span>All Items</span>
+       </button>
+     `;
+     this.menuCategories.forEach(cat => {
+       sbHtml += `
+         <button type="button" class="store-sb-link ${this.activeCategory == cat.id ? 'active' : ''}" onclick="CustomerApp.sidebarFilterCategory(${cat.id})">
+           <span class="store-sb-link-icon">${cat.icon || '📁'}</span>
+           <span>${cat.name}</span>
+         </button>
+       `;
+     });
+     sbCats.innerHTML = sbHtml;
+   }
 
- this.menuCategories.forEach(cat => {
- html += `
- <button class="cat-pill ${this.activeCategory == cat.id ? 'active' : ''}" onclick="CustomerApp.filterCategory(${cat.id})">
- <span>${cat.icon || ''}</span> ${cat.name}
- </button>
- `;
- });
+   // 3. Update section header
+   this.updateSectionHeader();
 
- nav.innerHTML = html;
+   // 4. Legacy fallback for old #category-nav if present
+   const legacyNav = document.getElementById('category-nav');
+   if (legacyNav) {
+     let legacyHtml = `
+       <button class="cat-pill ${this.activeCategory === 'all' ? 'active' : ''}" onclick="CustomerApp.filterCategory('all')">
+         All Items
+       </button>
+     `;
+     this.menuCategories.forEach(cat => {
+       legacyHtml += `
+         <button class="cat-pill ${this.activeCategory == cat.id ? 'active' : ''}" onclick="CustomerApp.filterCategory(${cat.id})">
+           <span>${cat.icon || ''}</span> ${cat.name}
+         </button>
+       `;
+     });
+     legacyNav.innerHTML = legacyHtml;
+   }
+ },
+
+ // Update section header title and item count
+ updateSectionHeader() {
+   const titleEl = document.getElementById('store-section-title');
+   const countEl = document.getElementById('store-item-count');
+
+   if (titleEl) {
+     if (this.activeCategory === 'all') {
+       titleEl.textContent = 'Featured Menu Catalog';
+     } else if (this.activeCategory === 'popular') {
+       titleEl.textContent = 'Popular & Hits';
+     } else {
+       const cat = this.menuCategories.find(c => c.id == this.activeCategory);
+       titleEl.textContent = cat ? cat.name : 'Menu Catalog';
+     }
+   }
+
+   if (countEl) {
+     let filtered = this.menuItems;
+     if (this.activeCategory !== 'all' && this.activeCategory !== 'popular') {
+       filtered = filtered.filter(it => it.category_id == this.activeCategory);
+     } else if (this.activeCategory === 'popular') {
+       filtered = filtered.filter(it => it.is_popular == 1);
+     }
+     countEl.textContent = `${filtered.length} items available`;
+   }
  },
 
  filterCategory(catId) {
- this.activeCategory = catId;
- this.renderCategoryNav();
- this.renderMenuGrid();
+   this.activeCategory = catId;
+   this.renderCategoryNav();
+   this.renderMenuGrid();
+ },
+
+ // Sidebar category click — filter and scroll to grid
+ sidebarFilterCategory(catId) {
+   this.activeCategory = catId;
+   this.renderCategoryNav();
+   this.renderMenuGrid();
+   // Smooth scroll to menu grid
+   const grid = document.getElementById('menu-grid');
+   if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+ },
+
+ // Popular & Hits filter (from hero button)
+ filterPopular() {
+   this.activeCategory = 'popular';
+   this.renderCategoryNav();
+   this.renderMenuGrid();
+   const grid = document.getElementById('menu-grid');
+   if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
  },
 
  renderMenuGrid() {
@@ -492,8 +618,10 @@ const CustomerApp = {
 
  let filtered = this.menuItems;
 
- if (this.activeCategory !== 'all') {
- filtered = filtered.filter(it => it.category_id == this.activeCategory);
+ if (this.activeCategory === 'popular') {
+   filtered = filtered.filter(it => it.is_popular == 1);
+ } else if (this.activeCategory !== 'all') {
+   filtered = filtered.filter(it => it.category_id == this.activeCategory);
  }
 
  if (this.searchQuery) {
@@ -502,6 +630,9 @@ const CustomerApp = {
  (it.description && it.description.toLowerCase().includes(this.searchQuery))
  );
  }
+
+ // Update section header counts after filtering
+ this.updateSectionHeader();
 
     if (filtered.length === 0) {
       if (this.menuItems.length === 0) {

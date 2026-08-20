@@ -43,9 +43,9 @@ if (!$currentUser) {
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Sate Tulang">
 </head>
-<body>
+<body class="store-layout-active">
 
-    <!-- App Side Navigation Backdrop & Drawer -->
+    <!-- ========== EXISTING MOBILE HAMBURGER DRAWER (kept for mobile/tablet) ========== -->
     <div class="app-sidenav-backdrop" id="app-sidenav-backdrop" onclick="SatayApp.closeSideNav()"></div>
     <aside class="app-sidenav" id="app-side-nav">
         <div class="sidenav-header">
@@ -134,114 +134,214 @@ if (!$currentUser) {
         </div>
     </aside>
 
-    <!-- Top Navigation Bar -->
-    <header class="navbar">
-        <div class="nav-brand" style="display:flex; align-items:center;">
-            <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <div class="nav-logo-icon">S</div>
-            <div class="brand-text">
-                <h1>SATE TULANG MADU</h1>
-                <p>Authentic Charcoal Grilled Skewers</p>
+    <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
+    <aside class="store-sidebar" id="store-sidebar">
+        <!-- Brand Header -->
+        <div class="store-sb-header">
+            <div class="store-sb-logo">S</div>
+            <div class="store-sb-brand-text">
+                <h2>SATE TULANG MADU</h2>
+                <span>Charcoal Grilled Skewers</span>
             </div>
         </div>
 
-        <div class="nav-actions" style="display:flex; align-items:center; gap:0.75rem;">
-            <!-- Order History Button -->
-            <button class="btn btn-secondary btn-sm" onclick="CustomerApp.showOrderHistoryModal()" id="btn-my-orders">
-                My Orders
+        <!-- User Card -->
+        <?php if ($currentUser): ?>
+            <div class="store-sb-user">
+                <div class="store-sb-avatar"><?php echo strtoupper(substr($currentUser['full_name'], 0, 1)); ?></div>
+                <div class="store-sb-user-info">
+                    <div class="store-sb-user-name"><?php echo htmlspecialchars($currentUser['full_name']); ?></div>
+                    <div class="store-sb-user-role"><?php echo ucfirst($currentUser['role']); ?> Account</div>
+                </div>
+            </div>
+        <?php elseif ($guestInfo): ?>
+            <div class="store-sb-user">
+                <div class="store-sb-avatar" style="background:var(--gold);">G</div>
+                <div class="store-sb-user-info">
+                    <div class="store-sb-user-name"><?php echo htmlspecialchars($guestInfo['guest_name']); ?></div>
+                    <div class="store-sb-user-role">Guest Mode</div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Sidebar Navigation -->
+        <nav class="store-sb-nav" id="store-sb-nav">
+            <!-- Dining Mode Segment -->
+            <div class="store-sb-section">Dining Mode</div>
+            <div class="store-sb-dining-segment">
+                <button type="button" class="store-sb-dining-btn active" data-mode="dine_in" onclick="CustomerApp.setDiningMode('dine_in')">🍽️ Dine-In</button>
+                <button type="button" class="store-sb-dining-btn" data-mode="takeaway" onclick="CustomerApp.setDiningMode('takeaway')">🥡 Takeaway</button>
+            </div>
+
+            <!-- Table Status Chip (shown if table assigned) -->
+            <div class="store-sb-table-chip" id="store-sb-table-chip" style="display:none;">
+                📍 <span id="store-sb-table-label">Table 01</span>
+            </div>
+
+            <!-- Menu Categories -->
+            <div class="store-sb-section">Storefront</div>
+            <div id="store-sb-categories">
+                <!-- Dynamically populated by customer.js -->
+            </div>
+
+            <!-- Quick Links -->
+            <div class="store-sb-section">Quick Actions</div>
+            <button type="button" class="store-sb-link" onclick="CustomerApp.showOrderHistoryModal()">
+                <span class="store-sb-link-icon">📋</span>
+                <span>My Orders & History</span>
             </button>
-
-            <!-- Customer Identity & Auth Menu Container -->
-            <div id="customer-nav-auth-container">
-                <?php if ($currentUser): ?>
-                    <!-- Logged-in User Dropdown -->
-                    <div class="customer-profile-menu">
-                        <button class="profile-trigger-btn" onclick="CustomerApp.toggleProfileDropdown(event)">
-                            <span id="nav-user-name"><?php echo htmlspecialchars($currentUser['full_name']); ?></span>
-                            <span style="font-size:0.65rem;">&#9662;</span>
-                        </button>
-                        <div class="profile-dropdown-menu" id="profile-dropdown-menu">
-                            <?php if ($currentUser['role'] === 'customer'): ?>
-                                <button class="profile-dropdown-item" onclick="CustomerApp.openProfileModal()">
-                                    My Saved Profile
-                                </button>
-                                <button class="profile-dropdown-item" onclick="CustomerApp.showOrderHistoryModal()">
-                                    My Past Orders
-                                </button>
-                                <div class="profile-dropdown-divider"></div>
-                            <?php elseif ($currentUser['role'] === 'staff'): ?>
-                                <a href="kitchen.php" class="profile-dropdown-item">
-                                    Open Kitchen Display
-                                </a>
-                                <div class="profile-dropdown-divider"></div>
-                            <?php elseif ($currentUser['role'] === 'admin'): ?>
-                                <a href="admin.php" class="profile-dropdown-item">
-                                    Admin Control Center
-                                </a>
-                                <a href="kitchen.php" class="profile-dropdown-item">
-                                    Kitchen Display (KDS)
-                                </a>
-                                <div class="profile-dropdown-divider"></div>
-                            <?php endif; ?>
-                            <a href="logout.php?redirect=index.php" class="profile-dropdown-item" style="color:var(--danger);">
-                                Sign Out
-                            </a>
-                        </div>
-                    </div>
-                <?php else: ?>
-                    <!-- Guest Mode Switch to Sign In / Register Modal -->
-                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="CustomerApp.openAuthModal('register')" style="font-size:0.78rem; padding:0.4rem 0.85rem; font-weight:600;">
-                            ✨ Register / Sign In
-                        </button>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </header>
-
-
-    <main class="container">
-        <!-- Hero Banner -->
-        <section class="hero-banner">
-            <div class="hero-content">
-                <div class="badge badge-primary" style="margin-bottom:0.75rem;">Fresh Charcoal Grilled Daily</div>
-                <h2>Aromatic, Juicy & Smokey <span>Satay Perfection</span></h2>
-                <p>Handcrafted skewers marinated in rich traditional spices, grilled over red-hot charcoal and served with thick velvety peanut sauce.</p>
-
-                <!-- Dining Mode Selector -->
-                <div class="dining-mode-selector">
-                    <button type="button" class="mode-btn active" data-mode="dine_in">
-                        Dine-In
-                    </button>
-                    <button type="button" class="mode-btn" data-mode="takeaway">
-                        Takeaway
-                    </button>
-                </div>
-            </div>
-
-            <div style="min-width: 260px; text-align: right; display: flex; flex-direction: column; gap: 0.75rem;">
-                <input type="text" id="search-menu" class="form-input" placeholder="Search skewers, platters..." style="background: var(--bg-card);">
-                <div style="font-size:0.8rem; color:var(--text-muted); text-align:left;">
-                    <em>Tip: Satay skewers require a minimum order of 5 sticks per meat type.</em>
-                </div>
-            </div>
-        </section>
-
-        <!-- Category Nav Filter -->
-        <nav class="category-nav" id="category-nav">
-            <!-- Dynamically populated -->
+            <?php if ($currentUser && $currentUser['role'] === 'customer'): ?>
+                <button type="button" class="store-sb-link" onclick="CustomerApp.openProfileModal()">
+                    <span class="store-sb-link-icon">👤</span>
+                    <span>My Saved Profile</span>
+                </button>
+            <?php endif; ?>
         </nav>
 
-        <!-- Menu Cards Grid -->
-        <section class="menu-grid" id="menu-grid">
-            <!-- Dynamically loaded via customer.js -->
-        </section>
-    </main>
+        <!-- Sidebar Footer -->
+        <div class="store-sb-footer">
+            <?php if ($currentUser): ?>
+                <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(181, 61, 46, 0.3); width:100%; justify-content:center; font-size:0.78rem;">
+                    Sign Out
+                </a>
+            <?php else: ?>
+                <button type="button" class="btn btn-primary btn-sm" onclick="CustomerApp.openAuthModal('register')" style="width:100%; justify-content:center; font-size:0.78rem;">
+                    ✨ Register / Sign In
+                </button>
+            <?php endif; ?>
+        </div>
+    </aside>
+
+    <!-- ========== MAIN CANVAS (Content Area) ========== -->
+    <div class="store-canvas" id="store-canvas">
+
+        <!-- Store Top Bar -->
+        <header class="store-topbar">
+            <div class="store-topbar-brand">
+                <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="nav-logo-icon">S</div>
+                <div class="brand-text">
+                    <h1>SATE TULANG MADU</h1>
+                    <p>Authentic Charcoal Grilled Skewers</p>
+                </div>
+            </div>
+
+            <div class="store-topbar-search">
+                <input type="text" id="search-menu" class="form-input" placeholder="Search skewers, platters, sides...">
+            </div>
+
+            <!-- Dining Badge (desktop only) -->
+            <div class="store-topbar-dining-badge" id="store-topbar-dining-badge">
+                🍽️ <span id="topbar-dining-label">Table 01 (Dine-In)</span>
+            </div>
+
+            <div class="store-topbar-actions">
+                <button class="btn btn-secondary btn-sm" onclick="CustomerApp.showOrderHistoryModal()" id="btn-my-orders" style="font-size:0.78rem;">
+                    My Orders
+                </button>
+
+                <div id="customer-nav-auth-container">
+                    <?php if ($currentUser): ?>
+                        <div class="customer-profile-menu">
+                            <button class="profile-trigger-btn" onclick="CustomerApp.toggleProfileDropdown(event)">
+                                <span id="nav-user-name"><?php echo htmlspecialchars($currentUser['full_name']); ?></span>
+                                <span style="font-size:0.65rem;">&#9662;</span>
+                            </button>
+                            <div class="profile-dropdown-menu" id="profile-dropdown-menu">
+                                <?php if ($currentUser['role'] === 'customer'): ?>
+                                    <button class="profile-dropdown-item" onclick="CustomerApp.openProfileModal()">
+                                        My Saved Profile
+                                    </button>
+                                    <button class="profile-dropdown-item" onclick="CustomerApp.showOrderHistoryModal()">
+                                        My Past Orders
+                                    </button>
+                                    <div class="profile-dropdown-divider"></div>
+                                <?php elseif ($currentUser['role'] === 'staff'): ?>
+                                    <a href="kitchen.php" class="profile-dropdown-item">
+                                        Open Kitchen Display
+                                    </a>
+                                    <div class="profile-dropdown-divider"></div>
+                                <?php elseif ($currentUser['role'] === 'admin'): ?>
+                                    <a href="admin.php" class="profile-dropdown-item">
+                                        Admin Control Center
+                                    </a>
+                                    <a href="kitchen.php" class="profile-dropdown-item">
+                                        Kitchen Display (KDS)
+                                    </a>
+                                    <div class="profile-dropdown-divider"></div>
+                                <?php endif; ?>
+                                <a href="logout.php?redirect=index.php" class="profile-dropdown-item" style="color:var(--danger);">
+                                    Sign Out
+                                </a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="CustomerApp.openAuthModal('register')" style="font-size:0.78rem; padding:0.4rem 0.85rem; font-weight:600;">
+                                Sign In / Register
+                            </button>
+                            <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.72rem; padding:0.3rem 0.5rem; color:var(--danger);" title="Exit">
+                                Exit
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </header>
+
+        <!-- Store Main Content -->
+        <main class="store-content">
+            <!-- Spotlight Hero Banner -->
+            <section class="store-hero">
+                <div class="store-hero-content">
+                    <div class="store-hero-badge">⭐ Signature Charcoal Grilled</div>
+                    <h2>Aromatic, Juicy & Smokey <span>Sate Tulang Madu</span></h2>
+                    <p>Handcrafted skewers marinated in 12 traditional aromatic spices with pure honey glaze, flame-grilled over red-hot charcoal and served with thick velvety peanut sauce.</p>
+                    <div class="store-hero-actions">
+                        <button type="button" class="btn-hero-primary" onclick="CustomerApp.sidebarFilterCategory('all')">🔥 Explore Full Menu</button>
+                        <button type="button" class="btn-hero-secondary" onclick="CustomerApp.filterPopular()">⭐ Popular & Hits</button>
+                    </div>
+                </div>
+                <div class="store-hero-right">
+                    <!-- Dining Mode Selector (visible on mobile / as secondary control) -->
+                    <div class="dining-mode-selector" style="background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.15);">
+                        <button type="button" class="mode-btn active" data-mode="dine_in" style="color:rgba(255,255,255,0.7);">
+                            Dine-In
+                        </button>
+                        <button type="button" class="mode-btn" data-mode="takeaway" style="color:rgba(255,255,255,0.7);">
+                            Takeaway
+                        </button>
+                    </div>
+                    <div class="store-hero-tip">
+                        Tip: Satay skewers require a minimum order of 5 sticks per meat type.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Category Ribbon (Horizontal Pills) -->
+            <nav class="store-category-ribbon" id="store-category-ribbon">
+                <!-- Dynamically populated by customer.js -->
+            </nav>
+
+            <!-- Section Header -->
+            <div class="store-section-header">
+                <h2 id="store-section-title">Featured Menu Catalog</h2>
+                <div class="store-section-meta">
+                    <span class="store-item-count" id="store-item-count">0 items available</span>
+                </div>
+            </div>
+
+            <!-- Menu Cards Grid (unchanged ID — customer.js targets this) -->
+            <section class="menu-grid" id="menu-grid">
+                <!-- Dynamically loaded via customer.js -->
+            </section>
+        </main>
+    </div>
+
 
     <!-- Floating Cart Trigger Button -->
     <button class="cart-floating-btn" id="floating-cart-btn" aria-label="View Order Cart">
