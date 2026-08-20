@@ -3,78 +3,78 @@
  */
 
 if (typeof SatayApp !== 'undefined' && !SatayApp.escapeHtml) {
-  SatayApp.escapeHtml = function(str) {
+  SatayApp.escapeHtml = function (str) {
     if (str === null || str === undefined) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   };
 }
 
 const AdminApp = {
- activeTab: 'dashboard', // 'dashboard', 'menu', 'orders', 'tables', 'users', 'settings'
- menuItems: [],
- categories: [],
- orders: [],
- tables: [],
- users: [],
- userRoleFilter: 'all',
+  activeTab: 'dashboard', // 'dashboard', 'menu', 'orders', 'tables', 'users', 'settings'
+  menuItems: [],
+  categories: [],
+  orders: [],
+  tables: [],
+  users: [],
+  userRoleFilter: 'all',
 
- init() {
- this.fetchDashboardStats();
- this.fetchMenu();
- this.fetchOrders();
- this.fetchTables();
- this.fetchUsers();
- this.fetchSettings();
- this.bindEvents();
- },
+  init() {
+    this.fetchDashboardStats();
+    this.fetchMenu();
+    this.fetchOrders();
+    this.fetchTables();
+    this.fetchUsers();
+    this.fetchSettings();
+    this.bindEvents();
+  },
 
- bindEvents() {
- // Tab switching
- document.querySelectorAll('.admin-nav-item').forEach(btn => {
- btn.addEventListener('click', () => {
- const tab = btn.dataset.tab;
- this.switchTab(tab);
- });
- });
+  bindEvents() {
+    // Tab switching
+    document.querySelectorAll('.admin-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        this.switchTab(tab);
+      });
+    });
 
- // Menu item form submit
- const menuForm = document.getElementById('menu-item-form');
- if (menuForm) {
- menuForm.addEventListener('submit', (e) => {
- e.preventDefault();
- this.saveMenuItem();
- });
- }
+    // Menu item form submit
+    const menuForm = document.getElementById('menu-item-form');
+    if (menuForm) {
+      menuForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.saveMenuItem();
+      });
+    }
 
- // User form submit
- const userForm = document.getElementById('user-form');
- if (userForm) {
- userForm.addEventListener('submit', (e) => {
- e.preventDefault();
- this.saveUser();
- });
- }
+    // User form submit
+    const userForm = document.getElementById('user-form');
+    if (userForm) {
+      userForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.saveUser();
+      });
+    }
 
- // Settings form submit
- const settingsForm = document.getElementById('settings-form');
- if (settingsForm) {
- settingsForm.addEventListener('submit', (e) => {
- e.preventDefault();
- this.saveSettings();
- });
- }
+    // Settings form submit
+    const settingsForm = document.getElementById('settings-form');
+    if (settingsForm) {
+      settingsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.saveSettings();
+      });
+    }
 
- // Order filters
- const orderStatusFilter = document.getElementById('filter-order-status');
- const orderDiningFilter = document.getElementById('filter-order-dining');
- const orderSearch = document.getElementById('filter-order-search');
+    // Order filters
+    const orderStatusFilter = document.getElementById('filter-order-status');
+    const orderDiningFilter = document.getElementById('filter-order-dining');
+    const orderSearch = document.getElementById('filter-order-search');
 
- if (orderStatusFilter) orderStatusFilter.addEventListener('change', () => this.fetchOrders());
- if (orderDiningFilter) orderDiningFilter.addEventListener('change', () => this.fetchOrders());
- if (orderSearch) orderSearch.addEventListener('input', () => this.fetchOrders());
- },
+    if (orderStatusFilter) orderStatusFilter.addEventListener('change', () => this.fetchOrders());
+    if (orderDiningFilter) orderDiningFilter.addEventListener('change', () => this.fetchOrders());
+    if (orderSearch) orderSearch.addEventListener('input', () => this.fetchOrders());
+  },
 
- switchTab(tab) {
+  switchTab(tab) {
     this.activeTab = tab;
     document.querySelectorAll('.admin-nav-item').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tab);
@@ -82,8 +82,8 @@ const AdminApp = {
 
     const titleMap = {
       'dashboard': 'Executive Overview',
-      'menu': 'Menu Catalog CRUD',
-      'orders': 'Live Orders Master',
+      'menu': 'Menu Catalog',
+      'orders': 'Live Orders',
       'tables': 'Table QRs & Stands',
       'users': 'Staff & Customer Accounts',
       'settings': 'Store & System Settings'
@@ -105,46 +105,46 @@ const AdminApp = {
     if (tab === 'users') this.fetchUsers();
   },
 
- // 1. Dashboard Analytics
- async fetchDashboardStats() {
- try {
- const res = await fetch('api/stats.php');
- const data = await res.json();
- if (data.success) {
- this.renderDashboardKPIs(data);
- this.renderStickBreakdown(data.stick_breakdown);
- this.renderTopItems(data.top_items);
- this.renderRecentOrders(data.recent_orders);
- }
- } catch (e) {
- console.error('Stats fetch error:', e);
- }
- },
+  // 1. Dashboard Analytics
+  async fetchDashboardStats() {
+    try {
+      const res = await fetch('api/stats.php');
+      const data = await res.json();
+      if (data.success) {
+        this.renderDashboardKPIs(data);
+        this.renderStickBreakdown(data.stick_breakdown);
+        this.renderTopItems(data.top_items);
+        this.renderRecentOrders(data.recent_orders);
+      }
+    } catch (e) {
+      console.error('Stats fetch error:', e);
+    }
+  },
 
- renderDashboardKPIs(data) {
- const todayRev = document.getElementById('kpi-today-revenue');
- const todaySticks = document.getElementById('kpi-today-sticks');
- const todayOrders = document.getElementById('kpi-today-orders');
- const activeOrders = document.getElementById('kpi-active-orders');
- const aov = document.getElementById('kpi-aov');
+  renderDashboardKPIs(data) {
+    const todayRev = document.getElementById('kpi-today-revenue');
+    const todaySticks = document.getElementById('kpi-today-sticks');
+    const todayOrders = document.getElementById('kpi-today-orders');
+    const activeOrders = document.getElementById('kpi-active-orders');
+    const aov = document.getElementById('kpi-aov');
 
- if (todayRev) todayRev.innerText = SatayApp.formatPrice(data.today.total_revenue);
- if (todaySticks) todaySticks.innerText = `${data.today.total_sticks_sold} Sticks`;
- if (todayOrders) todayOrders.innerText = `${data.today.total_orders} Orders`;
- if (activeOrders) activeOrders.innerText = `${data.today.active_orders} In Kitchen`;
- if (aov) aov.innerText = SatayApp.formatPrice(data.today.avg_order_value);
- },
+    if (todayRev) todayRev.innerText = SatayApp.formatPrice(data.today.total_revenue);
+    if (todaySticks) todaySticks.innerText = `${data.today.total_sticks_sold} Sticks`;
+    if (todayOrders) todayOrders.innerText = `${data.today.total_orders} Orders`;
+    if (activeOrders) activeOrders.innerText = `${data.today.active_orders} In Kitchen`;
+    if (aov) aov.innerText = SatayApp.formatPrice(data.today.avg_order_value);
+  },
 
- renderStickBreakdown(sticks) {
- const container = document.getElementById('stick-breakdown-container');
- if (!container || !sticks) return;
+  renderStickBreakdown(sticks) {
+    const container = document.getElementById('stick-breakdown-container');
+    if (!container || !sticks) return;
 
- let total = 0;
- Object.values(sticks).forEach(v => total += v);
+    let total = 0;
+    Object.values(sticks).forEach(v => total += v);
 
- container.innerHTML = Object.entries(sticks).map(([meat, qty]) => {
- const pct = total > 0 ? Math.round((qty / total) * 100) : 0;
- return `
+    container.innerHTML = Object.entries(sticks).map(([meat, qty]) => {
+      const pct = total > 0 ? Math.round((qty / total) * 100) : 0;
+      return `
  <div style="margin-bottom:1rem;">
  <div style="display:flex; justify-content:space-between; font-size:0.88rem; margin-bottom:4px;">
  <span><strong>${meat}</strong></span>
@@ -155,14 +155,14 @@ const AdminApp = {
  </div>
  </div>
  `;
- }).join('');
- },
+    }).join('');
+  },
 
- renderTopItems(items) {
- const container = document.getElementById('top-items-list');
- if (!container || !items) return;
+  renderTopItems(items) {
+    const container = document.getElementById('top-items-list');
+    if (!container || !items) return;
 
- container.innerHTML = items.map((it, idx) => `
+    container.innerHTML = items.map((it, idx) => `
  <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0; border-bottom:1px solid var(--border-color);">
  <div style="display:flex; align-items:center; gap:8px;">
  <span class="badge badge-gold" style="width:24px; height:24px; padding:0; justify-content:center;">${idx + 1}</span>
@@ -174,13 +174,13 @@ const AdminApp = {
  </div>
  </div>
  `).join('');
- },
+  },
 
- renderRecentOrders(orders) {
- const tbody = document.getElementById('recent-orders-tbody');
- if (!tbody || !orders) return;
+  renderRecentOrders(orders) {
+    const tbody = document.getElementById('recent-orders-tbody');
+    if (!tbody || !orders) return;
 
- tbody.innerHTML = orders.map(ord => `
+    tbody.innerHTML = orders.map(ord => `
  <tr>
  <td><strong>#${ord.order_number}</strong></td>
  <td>${ord.customer_name}</td>
@@ -192,32 +192,32 @@ const AdminApp = {
  </td>
  </tr>
  `).join('');
- },
+  },
 
- // 2. Menu Management (CRUD)
- async fetchMenu() {
- try {
- const res = await fetch('api/menu.php?all=1');
- const data = await res.json();
- if (data.success) {
- this.menuItems = data.items;
- this.categories = data.categories;
- this.renderMenuTable();
- this.populateCategorySelect();
- }
- } catch (e) {
- console.error(e);
- }
- },
+  // 2. Menu Management (CRUD)
+  async fetchMenu() {
+    try {
+      const res = await fetch('api/menu.php?all=1');
+      const data = await res.json();
+      if (data.success) {
+        this.menuItems = data.items;
+        this.categories = data.categories;
+        this.renderMenuTable();
+        this.populateCategorySelect();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
 
- populateCategorySelect() {
- const sel = document.getElementById('menu-item-category');
- if (!sel) return;
+  populateCategorySelect() {
+    const sel = document.getElementById('menu-item-category');
+    if (!sel) return;
 
- sel.innerHTML = this.categories.map(c => `
+    sel.innerHTML = this.categories.map(c => `
  <option value="${c.id}">${c.name}</option>
  `).join('');
- },
+  },
 
   renderMenuTable() {
     const tbody = document.getElementById('admin-menu-tbody');
@@ -432,34 +432,34 @@ const AdminApp = {
     }
   },
 
- // 3. Orders Master Management
- async fetchOrders() {
- const status = document.getElementById('filter-order-status')?.value || 'all';
- const dining = document.getElementById('filter-order-dining')?.value || 'all';
- const search = document.getElementById('filter-order-search')?.value.trim() || '';
+  // 3. Orders Master Management
+  async fetchOrders() {
+    const status = document.getElementById('filter-order-status')?.value || 'all';
+    const dining = document.getElementById('filter-order-dining')?.value || 'all';
+    const search = document.getElementById('filter-order-search')?.value.trim() || '';
 
- try {
- const res = await fetch(`api/orders.php?status=${status}&dining_type=${dining}&search=${encodeURIComponent(search)}`);
- const data = await res.json();
- if (data.success) {
- this.orders = data.orders;
- this.renderOrdersTable();
- }
- } catch (e) {
- console.error(e);
- }
- },
+    try {
+      const res = await fetch(`api/orders.php?status=${status}&dining_type=${dining}&search=${encodeURIComponent(search)}`);
+      const data = await res.json();
+      if (data.success) {
+        this.orders = data.orders;
+        this.renderOrdersTable();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
 
- renderOrdersTable() {
- const tbody = document.getElementById('admin-orders-tbody');
- if (!tbody) return;
+  renderOrdersTable() {
+    const tbody = document.getElementById('admin-orders-tbody');
+    if (!tbody) return;
 
- if (this.orders.length === 0) {
- tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">No orders found matching criteria.</td></tr>`;
- return;
- }
+    if (this.orders.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">No orders found matching criteria.</td></tr>`;
+      return;
+    }
 
- tbody.innerHTML = this.orders.map(ord => `
+    tbody.innerHTML = this.orders.map(ord => `
  <tr>
  <td><strong>#${ord.order_number}</strong></td>
  <td>
@@ -482,30 +482,30 @@ const AdminApp = {
  </td>
  </tr>
  `).join('');
- },
+  },
 
- getOrderBadgeClass(status) {
- switch (status) {
- case 'pending': return 'badge-info';
- case 'confirmed': return 'badge-gold';
- case 'grilling': return 'badge-primary';
- case 'ready': return 'badge-success';
- case 'completed': return 'badge-neutral';
- case 'cancelled': return 'badge-danger';
- default: return 'badge-neutral';
- }
- },
+  getOrderBadgeClass(status) {
+    switch (status) {
+      case 'pending': return 'badge-info';
+      case 'confirmed': return 'badge-gold';
+      case 'grilling': return 'badge-primary';
+      case 'ready': return 'badge-success';
+      case 'completed': return 'badge-neutral';
+      case 'cancelled': return 'badge-danger';
+      default: return 'badge-neutral';
+    }
+  },
 
- async viewOrderDetails(orderId) {
- try {
- const res = await fetch(`api/orders.php?id=${orderId}`);
- const data = await res.json();
- if (data.success && data.order) {
- const ord = data.order;
- const modal = document.getElementById('order-detail-content');
- if (!modal) return;
+  async viewOrderDetails(orderId) {
+    try {
+      const res = await fetch(`api/orders.php?id=${orderId}`);
+      const data = await res.json();
+      if (data.success && data.order) {
+        const ord = data.order;
+        const modal = document.getElementById('order-detail-content');
+        if (!modal) return;
 
- const itemsHtml = (ord.items || []).map(it => `
+        const itemsHtml = (ord.items || []).map(it => `
  <div style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid var(--border-color);">
  <div>
  <strong>${it.quantity}x</strong> ${it.item_name}
@@ -515,7 +515,7 @@ const AdminApp = {
  </div>
  `).join('');
 
- modal.innerHTML = `
+        modal.innerHTML = `
  <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
  <div>
  <h3 style="font-size:1.25rem;">Order #${ord.order_number}</h3>
@@ -572,39 +572,39 @@ const AdminApp = {
  </div>
  `;
 
- SatayApp.openModal('order-detail-modal');
- }
- } catch (e) {
- console.error(e);
- }
- },
+        SatayApp.openModal('order-detail-modal');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
 
- async updateOrderStatusFromModal(orderId) {
- const status = document.getElementById('update-order-status-val').value;
- try {
- const res = await fetch('api/orders.php', {
- method: 'PATCH',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ id: orderId, order_status: status })
- });
- const data = await res.json();
- if (data.success) {
- SatayApp.showToast('Order status updated', 'success');
- SatayApp.closeModal('order-detail-modal');
- this.fetchOrders();
- this.fetchDashboardStats();
- }
- } catch (e) {
- console.error(e);
- }
- },
+  async updateOrderStatusFromModal(orderId) {
+    const status = document.getElementById('update-order-status-val').value;
+    try {
+      const res = await fetch('api/orders.php', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, order_status: status })
+      });
+      const data = await res.json();
+      if (data.success) {
+        SatayApp.showToast('Order status updated', 'success');
+        SatayApp.closeModal('order-detail-modal');
+        this.fetchOrders();
+        this.fetchDashboardStats();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
 
- exportCSV() {
- window.location.href = 'api/stats.php?export=orders_csv';
- },
+  exportCSV() {
+    window.location.href = 'api/stats.php?export=orders_csv';
+  },
 
- // 4. Table & QR Manager
- async fetchTables() {
+  // 4. Table & QR Manager
+  async fetchTables() {
     try {
       const res = await fetch('api/tables.php');
       const data = await res.json();
@@ -1053,89 +1053,89 @@ const AdminApp = {
     }
   },
 
- // 5. Settings
- async fetchSettings() {
- try {
- const res = await fetch('api/stats.php?settings=1');
- const data = await res.json();
- if (data.success && data.settings) {
- const s = data.settings;
- if (document.getElementById('setting-store-name')) document.getElementById('setting-store-name').value = s.store_name || '';
- if (document.getElementById('setting-tax-rate')) document.getElementById('setting-tax-rate').value = s.tax_rate_percent || '6';
- if (document.getElementById('setting-currency')) document.getElementById('setting-currency').value = s.currency_symbol || 'RM';
- if (document.getElementById('setting-phone')) document.getElementById('setting-phone').value = s.whatsapp_number || '';
- if (document.getElementById('setting-address')) document.getElementById('setting-address').value = s.store_address || '';
- }
- } catch (e) {
- console.error(e);
- }
- },
+  // 5. Settings
+  async fetchSettings() {
+    try {
+      const res = await fetch('api/stats.php?settings=1');
+      const data = await res.json();
+      if (data.success && data.settings) {
+        const s = data.settings;
+        if (document.getElementById('setting-store-name')) document.getElementById('setting-store-name').value = s.store_name || '';
+        if (document.getElementById('setting-tax-rate')) document.getElementById('setting-tax-rate').value = s.tax_rate_percent || '6';
+        if (document.getElementById('setting-currency')) document.getElementById('setting-currency').value = s.currency_symbol || 'RM';
+        if (document.getElementById('setting-phone')) document.getElementById('setting-phone').value = s.whatsapp_number || '';
+        if (document.getElementById('setting-address')) document.getElementById('setting-address').value = s.store_address || '';
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
 
- async saveSettings() {
- const payload = {
- store_name: document.getElementById('setting-store-name').value.trim(),
- tax_rate_percent: document.getElementById('setting-tax-rate').value.trim(),
- currency_symbol: document.getElementById('setting-currency').value.trim(),
- whatsapp_number: document.getElementById('setting-phone').value.trim(),
- store_address: document.getElementById('setting-address').value.trim()
- };
+  async saveSettings() {
+    const payload = {
+      store_name: document.getElementById('setting-store-name').value.trim(),
+      tax_rate_percent: document.getElementById('setting-tax-rate').value.trim(),
+      currency_symbol: document.getElementById('setting-currency').value.trim(),
+      whatsapp_number: document.getElementById('setting-phone').value.trim(),
+      store_address: document.getElementById('setting-address').value.trim()
+    };
 
- try {
- const res = await fetch('api/stats.php?settings=1', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify(payload)
- });
- const data = await res.json();
- if (data.success) {
- SatayApp.showToast('Settings saved successfully', 'success');
- }
- } catch (e) {
- console.error(e);
- }
- },
+    try {
+      const res = await fetch('api/stats.php?settings=1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        SatayApp.showToast('Settings saved successfully', 'success');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  },
 
- // 6. User & Customer Management
- async fetchUsers() {
- try {
- const res = await fetch('api/stats.php?users=1');
- const data = await res.json();
- if (data.success) {
- this.users = data.users || [];
- this.renderUsersTable();
- }
- } catch (e) {
- console.error('Error fetching users:', e);
- }
- },
+  // 6. User & Customer Management
+  async fetchUsers() {
+    try {
+      const res = await fetch('api/stats.php?users=1');
+      const data = await res.json();
+      if (data.success) {
+        this.users = data.users || [];
+        this.renderUsersTable();
+      }
+    } catch (e) {
+      console.error('Error fetching users:', e);
+    }
+  },
 
- filterUsersByRole(role) {
- this.userRoleFilter = role;
- document.querySelectorAll('.user-filter-pill').forEach(btn => {
- btn.classList.toggle('active', btn.dataset.role === role);
- });
- this.renderUsersTable();
- },
+  filterUsersByRole(role) {
+    this.userRoleFilter = role;
+    document.querySelectorAll('.user-filter-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.role === role);
+    });
+    this.renderUsersTable();
+  },
 
- renderUsersTable() {
- const tbody = document.getElementById('admin-users-tbody');
- if (!tbody) return;
+  renderUsersTable() {
+    const tbody = document.getElementById('admin-users-tbody');
+    if (!tbody) return;
 
- let filtered = this.users;
- if (this.userRoleFilter !== 'all') {
- filtered = filtered.filter(u => u.role === this.userRoleFilter);
- }
+    let filtered = this.users;
+    if (this.userRoleFilter !== 'all') {
+      filtered = filtered.filter(u => u.role === this.userRoleFilter);
+    }
 
- if (filtered.length === 0) {
- tbody.innerHTML = `
+    if (filtered.length === 0) {
+      tbody.innerHTML = `
  <tr>
  <td colspan="7" style="text-align:center; padding:2rem; color:var(--text-muted);">
  No user accounts found matching filter.
  </td>
  </tr>
  `;
- return;
- }
+      return;
+    }
 
     const roleBadges = {
       admin: '<span class="badge role-tag-admin" style="font-size:0.75rem;">👑 ADMIN</span>',
@@ -1144,7 +1144,7 @@ const AdminApp = {
       customer: '<span class="badge role-tag-customer" style="font-size:0.75rem;">🛒 CUSTOMER</span>'
     };
 
- tbody.innerHTML = filtered.map(u => `
+    tbody.innerHTML = filtered.map(u => `
  <tr>
  <td>
  <div style="font-weight:700; color:var(--text-main);">${SatayApp.escapeHtml(u.full_name)}</div>
@@ -1179,93 +1179,93 @@ const AdminApp = {
  </td>
  </tr>
  `).join('');
- },
+  },
 
- openAddUserModal() {
- document.getElementById('user-id').value = '';
- document.getElementById('user-fullname').value = '';
- document.getElementById('user-username').value = '';
- document.getElementById('user-phone').value = '';
- document.getElementById('user-email').value = '';
- document.getElementById('user-address').value = '';
- document.getElementById('user-role').value = 'staff';
- document.getElementById('user-password').value = '';
- document.getElementById('user-modal-title').innerText = '+ Add User Account';
+  openAddUserModal() {
+    document.getElementById('user-id').value = '';
+    document.getElementById('user-fullname').value = '';
+    document.getElementById('user-username').value = '';
+    document.getElementById('user-phone').value = '';
+    document.getElementById('user-email').value = '';
+    document.getElementById('user-address').value = '';
+    document.getElementById('user-role').value = 'staff';
+    document.getElementById('user-password').value = '';
+    document.getElementById('user-modal-title').innerText = '+ Add User Account';
 
- SatayApp.openModal('user-modal');
- },
+    SatayApp.openModal('user-modal');
+  },
 
- openEditUserModal(userId) {
- const u = this.users.find(x => x.id == userId);
- if (!u) return;
+  openEditUserModal(userId) {
+    const u = this.users.find(x => x.id == userId);
+    if (!u) return;
 
- document.getElementById('user-id').value = u.id;
- document.getElementById('user-fullname').value = u.full_name || '';
- document.getElementById('user-username').value = u.username || '';
- document.getElementById('user-phone').value = u.phone || '';
- document.getElementById('user-email').value = u.email || '';
- document.getElementById('user-address').value = u.address || '';
- document.getElementById('user-role').value = u.role || 'customer';
- document.getElementById('user-password').value = '';
- document.getElementById('user-modal-title').innerText = `Edit User: ${u.full_name}`;
+    document.getElementById('user-id').value = u.id;
+    document.getElementById('user-fullname').value = u.full_name || '';
+    document.getElementById('user-username').value = u.username || '';
+    document.getElementById('user-phone').value = u.phone || '';
+    document.getElementById('user-email').value = u.email || '';
+    document.getElementById('user-address').value = u.address || '';
+    document.getElementById('user-role').value = u.role || 'customer';
+    document.getElementById('user-password').value = '';
+    document.getElementById('user-modal-title').innerText = `Edit User: ${u.full_name}`;
 
- SatayApp.openModal('user-modal');
- },
+    SatayApp.openModal('user-modal');
+  },
 
- async saveUser() {
- const id = document.getElementById('user-id').value;
- const payload = {
- id: id ? parseInt(id) : null,
- full_name: document.getElementById('user-fullname').value.trim(),
- username: document.getElementById('user-username').value.trim(),
- role: document.getElementById('user-role').value,
- phone: document.getElementById('user-phone').value.trim(),
- email: document.getElementById('user-email').value.trim(),
- address: document.getElementById('user-address').value.trim(),
- password: document.getElementById('user-password').value.trim()
- };
+  async saveUser() {
+    const id = document.getElementById('user-id').value;
+    const payload = {
+      id: id ? parseInt(id) : null,
+      full_name: document.getElementById('user-fullname').value.trim(),
+      username: document.getElementById('user-username').value.trim(),
+      role: document.getElementById('user-role').value,
+      phone: document.getElementById('user-phone').value.trim(),
+      email: document.getElementById('user-email').value.trim(),
+      address: document.getElementById('user-address').value.trim(),
+      password: document.getElementById('user-password').value.trim()
+    };
 
- try {
- const res = await fetch('api/stats.php?users=1', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify(payload)
- });
- const data = await res.json();
- if (data.success) {
- SatayApp.closeModal('user-modal');
- SatayApp.showToast(data.message || 'User saved successfully', 'success');
- this.fetchUsers();
- } else {
- SatayApp.showToast(data.message || 'Failed to save user', 'danger');
- }
- } catch (e) {
- console.error(e);
- SatayApp.showToast('Network error saving user', 'danger');
- }
- },
+    try {
+      const res = await fetch('api/stats.php?users=1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        SatayApp.closeModal('user-modal');
+        SatayApp.showToast(data.message || 'User saved successfully', 'success');
+        this.fetchUsers();
+      } else {
+        SatayApp.showToast(data.message || 'Failed to save user', 'danger');
+      }
+    } catch (e) {
+      console.error(e);
+      SatayApp.showToast('Network error saving user', 'danger');
+    }
+  },
 
- async deleteUser(userId) {
- if (!confirm('Are you sure you want to delete this user account?')) return;
+  async deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user account?')) return;
 
- try {
- const res = await fetch(`api/stats.php?users=1&id=${userId}`, {
- method: 'DELETE'
- });
- const data = await res.json();
- if (data.success) {
- SatayApp.showToast('User deleted successfully', 'success');
- this.fetchUsers();
- } else {
- SatayApp.showToast(data.message || 'Failed to delete user', 'danger');
- }
- } catch (e) {
- console.error(e);
- SatayApp.showToast('Network error deleting user', 'danger');
- }
- }
+    try {
+      const res = await fetch(`api/stats.php?users=1&id=${userId}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data.success) {
+        SatayApp.showToast('User deleted successfully', 'success');
+        this.fetchUsers();
+      } else {
+        SatayApp.showToast(data.message || 'Failed to delete user', 'danger');
+      }
+    } catch (e) {
+      console.error(e);
+      SatayApp.showToast('Network error deleting user', 'danger');
+    }
+  }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
- AdminApp.init();
+  AdminApp.init();
 });
