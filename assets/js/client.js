@@ -378,6 +378,7 @@ const ClientApp = {
       // Calculate real-time elapsed minutes and display string
       const elapsedMins = SatayApp.getElapsedMinutes(order.created_at);
       const timeAgoStr = SatayApp.formatTimeAgo(order.created_at);
+      const clockTimeStr = SatayApp.formatClockTime(order.created_at);
       const isLate = elapsedMins >= 20;
 
       const itemsHtml = (order.items || []).map(it => {
@@ -409,7 +410,7 @@ const ClientApp = {
             <div style="text-align:right;">
               <span class="badge ${this.getStatusBadgeClass(order.order_status)}">${SatayApp.escapeHtml(order.order_status)}</span>
               <div class="ticket-time" style="color: ${isLate ? 'var(--danger)' : 'var(--text-muted)'}; font-weight:${isLate ? '800' : '500'};">
-                ${timeAgoStr}
+                ${clockTimeStr ? `🕒 ${clockTimeStr} (${timeAgoStr})` : timeAgoStr}
               </div>
             </div>
           </div>

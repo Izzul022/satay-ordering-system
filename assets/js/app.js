@@ -58,6 +58,13 @@ const SatayApp = {
     return `${days}d ago`;
   },
 
+  formatClockTime(dateStr) {
+    if (!dateStr) return '';
+    const date = this.parseOrderDate(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  },
+
   // HTML escaping utility for XSS protection
   escapeHtml(str) {
     if (str === null || str === undefined) return '';

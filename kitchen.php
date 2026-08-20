@@ -173,29 +173,6 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
         <main class="store-content container-fluid">
         <!-- 1. KITCHEN DISPLAY SYSTEM (KDS) VIEW -->
         <section id="view-kds">
-            <!-- Grill / Drinks Aggregator Bar -->
-            <div class="kds-header">
-                <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
-                    <!-- Station Filter Selector -->
-                    <div style="display:flex; gap:3px; background:var(--bg-card); padding:3px; border-radius:var(--radius-full); border:1px solid var(--border-color);">
-                        <button class="kds-station-pill btn btn-sm btn-secondary active" data-station="all" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">🍢 All</button>
-                        <button class="kds-station-pill btn btn-sm btn-secondary" data-station="grill" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">🔥 Grill</button>
-                        <button class="kds-station-pill btn btn-sm btn-secondary" data-station="drinks" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">🥤 Drinks</button>
-                    </div>
-
-                    <div style="font-size:0.85rem; color:var(--text-muted);">
-                        Active: <span class="badge badge-primary" id="active-orders-count">0</span>
-                    </div>
-
-                    <!-- Dining Type Filter Tabs -->
-                    <div style="display:flex; gap:3px; background:var(--bg-card); padding:3px; border-radius:var(--radius-full); border:1px solid var(--border-color);">
-                        <button class="kds-filter-pill btn btn-sm btn-secondary active" data-filter="all" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">All Types</button>
-                        <button class="kds-filter-pill btn btn-sm btn-secondary" data-filter="dine_in" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">Dine-In</button>
-                        <button class="kds-filter-pill btn btn-sm btn-secondary" data-filter="takeaway" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">Takeaway</button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Active Orders Grid -->
             <div class="kds-grid" id="kds-grid">
                 <!-- Dynamically updated via client.js -->
