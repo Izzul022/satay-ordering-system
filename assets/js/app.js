@@ -18,26 +18,26 @@ const SatayApp = {
     const str = String(dateStr).trim();
     if (!str) return new Date();
 
-    // If string is ISO with Z or offset
+    // If string is explicit ISO with Z or timezone offset (e.g. '2026-08-20T15:45:00Z' or '+08:00')
     if (str.includes('T') && (str.endsWith('Z') || str.includes('+'))) {
       return new Date(str);
     }
 
-    // Standard SQLite format: 'YYYY-MM-DD HH:MM:SS'
-    // Attempt local parse:
-    const localParsed = new Date(str.replace(/-/g, '/'));
-    // Attempt UTC parse:
-    const utcParsed = new Date(str.replace(' ', 'T') + 'Z');
-
-    const now = new Date();
-    const diffLocal = Math.abs(now.getTime() - localParsed.getTime());
-    const diffUtc = Math.abs(now.getTime() - utcParsed.getTime());
-
-    // If local diff is huge (e.g. ~8 hours = 480 mins) and UTC diff is much smaller, use UTC!
-    if (!isNaN(utcParsed.getTime()) && !isNaN(localParsed.getTime())) {
-      return (diffUtc < diffLocal) ? utcParsed : localParsed;
+    // Standard local database timestamp format 'YYYY-MM-DD HH:MM:SS'
+    const parts = str.split(/[- :T]/);
+    if (parts.length >= 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const hour = parts[3] ? parseInt(parts[3], 10) : 0;
+      const minute = parts[4] ? parseInt(parts[4], 10) : 0;
+      const second = parts[5] ? parseInt(parts[5], 10) : 0;
+      const parsed = new Date(year, month, day, hour, minute, second);
+      if (!isNaN(parsed.getTime())) return parsed;
     }
-    return !isNaN(localParsed.getTime()) ? localParsed : new Date();
+
+    const fallback = new Date(str.replace(/-/g, '/'));
+    return !isNaN(fallback.getTime()) ? fallback : new Date();
   },
 
   getElapsedMinutes(dateStr) {
