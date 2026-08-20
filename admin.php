@@ -61,11 +61,11 @@ $currentUser = get_current_auth_user();
             </button>
             <button type="button" class="sidenav-link admin-nav-item" data-tab="menu" onclick="AdminApp.switchTab('menu'); SatayApp.closeSideNav()">
                 <span class="sidenav-link-icon">🍗</span>
-                <span>Menu Catalog CRUD</span>
+                <span>Menu Catalog</span>
             </button>
             <button type="button" class="sidenav-link admin-nav-item" data-tab="orders" onclick="AdminApp.switchTab('orders'); SatayApp.closeSideNav()">
                 <span class="sidenav-link-icon">📦</span>
-                <span>Live Orders Master</span>
+                <span>Live Orders</span>
             </button>
             <button type="button" class="sidenav-link admin-nav-item" data-tab="tables" onclick="AdminApp.switchTab('tables'); SatayApp.closeSideNav()">
                 <span class="sidenav-link-icon">📱</span>
@@ -120,11 +120,11 @@ $currentUser = get_current_auth_user();
             </button>
             <button type="button" class="store-sb-link admin-nav-item" data-tab="menu" onclick="AdminApp.switchTab('menu')">
                 <span class="store-sb-link-icon">🍗</span>
-                <span>Menu Catalog CRUD</span>
+                <span>Menu Catalog</span>
             </button>
             <button type="button" class="store-sb-link admin-nav-item" data-tab="orders" onclick="AdminApp.switchTab('orders')">
                 <span class="store-sb-link-icon">📦</span>
-                <span>Live Orders Master</span>
+                <span>Live Orders</span>
             </button>
             <button type="button" class="store-sb-link admin-nav-item" data-tab="tables" onclick="AdminApp.switchTab('tables')">
                 <span class="store-sb-link-icon">📱</span>
@@ -299,7 +299,7 @@ $currentUser = get_current_auth_user();
         <section id="tab-orders" style="display:none;">
             <div style="margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
                 <div>
-                    <h2>Orders Master Directory</h2>
+                    <h2>Orders Directory</h2>
                     <p style="color:var(--text-muted); font-size:0.9rem;">Track, inspect, update status, or export all customer orders.</p>
                 </div>
                 <div style="display:flex; gap:0.75rem;">
