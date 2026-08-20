@@ -30,9 +30,9 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Satay KDS">
 </head>
-<body>
+<body class="store-layout-active">
 
-    <!-- App Side Navigation Backdrop & Drawer -->
+    <!-- ========== EXISTING MOBILE HAMBURGER DRAWER (kept for mobile/tablet) ========== -->
     <div class="app-sidenav-backdrop" id="app-sidenav-backdrop" onclick="SatayApp.closeSideNav()"></div>
     <aside class="app-sidenav" id="app-side-nav">
         <div class="sidenav-header">
@@ -99,49 +99,121 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
         </div>
     </aside>
 
-
-    <!-- Top Navigation Bar -->
-    <header class="navbar">
-        <div class="nav-brand" style="display:flex; align-items:center;">
-            <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <div class="nav-logo-icon" style="background: <?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>;">
+    <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
+    <aside class="store-sidebar" id="store-sidebar">
+        <!-- Brand Header -->
+        <div class="store-sb-header">
+            <div class="store-sb-logo" style="background:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>;">
                 <?php echo $isDrinksStaff ? '🥤' : 'K'; ?>
             </div>
-            <div class="brand-text">
-                <h1><?php echo $isDrinksStaff ? 'DRINK BAR STATION & KDS' : 'KITCHEN DISPLAY & POS'; ?></h1>
-                <p><?php echo $isDrinksStaff ? 'Real-Time Beverage Orders Queue' : 'Sate Tulang Madu Kitchen Ops'; ?></p>
+            <div class="store-sb-brand-text">
+                <h2><?php echo $isDrinksStaff ? 'DRINK BAR KDS' : 'KITCHEN & POS'; ?></h2>
+                <span>Sate Tulang Madu Ops</span>
             </div>
         </div>
 
-        <div class="nav-actions" style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
-            <button type="button" class="btn btn-secondary btn-sm" onclick="ClientApp.enableAndTestNotification()" title="Click to ensure phone ringtone and vibration permissions are active" style="font-size:0.78rem; padding:0.35rem 0.65rem;">
-                🔔 Test Ring & Vibrate
+        <!-- Staff User Card -->
+        <div class="store-sb-user">
+            <div class="store-sb-avatar" style="background:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>;">
+                <?php echo $isDrinksStaff ? '🥤' : strtoupper(substr($currentUser['full_name'] ?? 'Staff', 0, 1)); ?>
+            </div>
+            <div class="store-sb-user-info">
+                <div class="store-sb-user-name"><?php echo htmlspecialchars($currentUser['full_name'] ?? 'Kitchen Staff'); ?></div>
+                <div class="store-sb-user-role"><?php echo $isDrinksStaff ? '🥤 Drink Section Barista' : ucfirst($currentUser['role'] ?? 'Staff') . ' Ops'; ?></div>
+            </div>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="store-sb-nav" id="store-sb-nav">
+            <div class="store-sb-section">Station Views</div>
+            <button type="button" class="store-sb-link client-tab-btn active" data-tab="kds" onclick="ClientApp.switchTab('kds')">
+                <span class="store-sb-link-icon">🍳</span>
+                <span>Live Orders Queue (KDS)</span>
+            </button>
+            <button type="button" class="store-sb-link client-tab-btn" data-tab="pos" onclick="ClientApp.switchTab('pos')">
+                <span class="store-sb-link-icon">💵</span>
+                <span>Walk-In Cashier POS</span>
+            </button>
+            <button type="button" class="store-sb-link client-tab-btn" data-tab="stock" onclick="ClientApp.switchTab('stock')">
+                <span class="store-sb-link-icon">📦</span>
+                <span>Stock & Availability</span>
             </button>
 
-            <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; color:var(--text-muted); cursor:pointer;">
-                <input type="checkbox" id="sound-alert-toggle" checked style="accent-color:var(--primary);">
-                <span>Sound</span>
-            </label>
+            <div class="store-sb-section">Quick Actions</div>
+            <button type="button" class="store-sb-link" onclick="ClientApp.enableAndTestNotification()">
+                <span class="store-sb-link-icon">🔔</span>
+                <span>Test Ring & Vibration</span>
+            </button>
 
-            <!-- Admin quick switch if role is admin -->
+            <div class="store-sb-section">Quick Portals</div>
             <?php if ($currentUser['role'] === 'admin'): ?>
-                <a href="admin.php" class="btn btn-secondary btn-sm" style="font-size:0.78rem;">
-                    Admin Panel
+                <a href="admin.php" class="store-sb-link">
+                    <span class="store-sb-link-icon">👑</span>
+                    <span>Admin Control Center</span>
                 </a>
             <?php endif; ?>
+            <a href="index.php" class="store-sb-link">
+                <span class="store-sb-link-icon">🛒</span>
+                <span>Customer View</span>
+            </a>
+        </nav>
 
-            <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem; border-color:rgba(181, 61, 46, 0.3); color:var(--danger);">
-                Logout
+        <!-- Sidebar Footer -->
+        <div class="store-sb-footer">
+            <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(181, 61, 46, 0.3); width:100%; justify-content:center; font-size:0.78rem;">
+                Sign Out / Logout
             </a>
         </div>
-    </header>
+    </aside>
 
+    <!-- ========== MAIN CANVAS (Content Area) ========== -->
+    <div class="store-canvas" id="store-canvas">
 
-    <main class="container-fluid">
+        <!-- Store Top Bar -->
+        <header class="store-topbar">
+            <div class="store-topbar-brand">
+                <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="nav-logo-icon" style="background:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>;">
+                    <?php echo $isDrinksStaff ? '🥤' : 'K'; ?>
+                </div>
+                <div class="brand-text">
+                    <h1><?php echo $isDrinksStaff ? 'DRINK BAR STATION & KDS' : 'KITCHEN DISPLAY & POS'; ?></h1>
+                    <p><?php echo $isDrinksStaff ? 'Real-Time Beverage Orders Queue' : 'Sate Tulang Madu Kitchen Ops'; ?></p>
+                </div>
+            </div>
+
+            <!-- Active Station Title Badge -->
+            <div class="store-topbar-dining-badge" style="background:<?php echo $isDrinksStaff ? 'var(--info-light)' : 'var(--gold-light)'; ?>; color:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>; border-color:rgba(155, 106, 47, 0.25);">
+                <?php echo $isDrinksStaff ? '🥤' : '🍳'; ?> <span id="topbar-kitchen-title"><?php echo $isDrinksStaff ? 'Drink Station Queue' : 'Kitchen Orders Display (KDS)'; ?></span>
+            </div>
+
+            <div class="store-topbar-actions" style="margin-left:auto;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="ClientApp.enableAndTestNotification()" title="Test phone ringtone and vibration" style="font-size:0.78rem;">
+                    🔔 Test Alert
+                </button>
+                <label style="display:flex; align-items:center; gap:5px; font-size:0.8rem; color:var(--text-muted); cursor:pointer;">
+                    <input type="checkbox" id="sound-alert-toggle" checked style="accent-color:var(--primary);">
+                    <span>Sound</span>
+                </label>
+
+                <?php if ($currentUser['role'] === 'admin'): ?>
+                    <a href="admin.php" class="btn btn-secondary btn-sm" style="font-size:0.78rem;">
+                        Admin Panel
+                    </a>
+                <?php endif; ?>
+
+                <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.78rem; padding:0.35rem 0.75rem; border-color:rgba(181, 61, 46, 0.3); color:var(--danger);">
+                    Logout
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="store-content container-fluid">
         <!-- 1. KITCHEN DISPLAY SYSTEM (KDS) VIEW -->
         <section id="view-kds">
             <!-- Grill / Drinks Aggregator Bar -->
@@ -308,6 +380,7 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
             </div>
         </section>
     </main>
+</div><!-- /.store-canvas -->
 
     <!-- Core Scripts -->
     <script>

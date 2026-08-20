@@ -29,9 +29,9 @@ $currentUser = get_current_auth_user();
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Satay Admin">
 </head>
-<body>
+<body class="store-layout-active">
 
-    <!-- App Side Navigation Backdrop & Drawer -->
+    <!-- ========== EXISTING MOBILE HAMBURGER DRAWER (kept for mobile/tablet) ========== -->
     <div class="app-sidenav-backdrop" id="app-sidenav-backdrop" onclick="SatayApp.closeSideNav()"></div>
     <aside class="app-sidenav" id="app-side-nav">
         <div class="sidenav-header">
@@ -98,31 +98,108 @@ $currentUser = get_current_auth_user();
         </div>
     </aside>
 
-    <!-- Top Navigation Bar -->
-    <header class="navbar">
-        <div class="nav-brand" style="display:flex; align-items:center;">
-            <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <div class="nav-logo-icon" style="background: var(--info);">A</div>
-            <div class="brand-text">
-                <h1>ADMIN CONTROL CENTER</h1>
-                <p>Sate Tulang Madu Management</p>
+    <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
+    <aside class="store-sidebar" id="store-sidebar">
+        <!-- Brand Header -->
+        <div class="store-sb-header">
+            <div class="store-sb-logo" style="background:var(--info);">A</div>
+            <div class="store-sb-brand-text">
+                <h2>ADMIN CONTROL</h2>
+                <span>Sate Tulang Madu Center</span>
             </div>
         </div>
 
-        <!-- Navigation & User Logout -->
-        <div class="nav-actions" style="display:flex; align-items:center; gap:0.75rem;">
-            <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem; border-color:rgba(181, 61, 46, 0.3); color:var(--danger);">
-                Logout
+        <!-- Admin User Card -->
+        <div class="store-sb-user">
+            <div class="store-sb-avatar" style="background:var(--info);"><?php echo strtoupper(substr($currentUser['full_name'] ?? 'Admin', 0, 1)); ?></div>
+            <div class="store-sb-user-info">
+                <div class="store-sb-user-name"><?php echo htmlspecialchars($currentUser['full_name'] ?? 'Administrator'); ?></div>
+                <div class="store-sb-user-role">Master Administrator</div>
+            </div>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="store-sb-nav" id="store-sb-nav">
+            <div class="store-sb-section">Administration</div>
+            <button type="button" class="store-sb-link admin-nav-item active" data-tab="dashboard" onclick="AdminApp.switchTab('dashboard')">
+                <span class="store-sb-link-icon">📊</span>
+                <span>Executive Dashboard</span>
+            </button>
+            <button type="button" class="store-sb-link admin-nav-item" data-tab="menu" onclick="AdminApp.switchTab('menu')">
+                <span class="store-sb-link-icon">🍗</span>
+                <span>Menu Catalog CRUD</span>
+            </button>
+            <button type="button" class="store-sb-link admin-nav-item" data-tab="orders" onclick="AdminApp.switchTab('orders')">
+                <span class="store-sb-link-icon">📦</span>
+                <span>Live Orders Master</span>
+            </button>
+            <button type="button" class="store-sb-link admin-nav-item" data-tab="tables" onclick="AdminApp.switchTab('tables')">
+                <span class="store-sb-link-icon">📱</span>
+                <span>Table QRs & Stands</span>
+            </button>
+            <button type="button" class="store-sb-link admin-nav-item" data-tab="users" onclick="AdminApp.switchTab('users')">
+                <span class="store-sb-link-icon">👥</span>
+                <span>Staff & Customers</span>
+            </button>
+            <button type="button" class="store-sb-link admin-nav-item" data-tab="settings" onclick="AdminApp.switchTab('settings')">
+                <span class="store-sb-link-icon">⚙️</span>
+                <span>Store Settings</span>
+            </button>
+
+            <div class="store-sb-section">Quick Portals</div>
+            <a href="kitchen.php" class="store-sb-link">
+                <span class="store-sb-link-icon">🍳</span>
+                <span>Kitchen Display (KDS)</span>
+            </a>
+            <a href="index.php" class="store-sb-link">
+                <span class="store-sb-link-icon">🛒</span>
+                <span>Customer Ordering View</span>
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="store-sb-footer">
+            <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(181, 61, 46, 0.3); width:100%; justify-content:center; font-size:0.78rem;">
+                Sign Out / Logout
             </a>
         </div>
-    </header>
+    </aside>
 
+    <!-- ========== MAIN CANVAS (Content Area) ========== -->
+    <div class="store-canvas" id="store-canvas">
 
-    <main class="container">
+        <!-- Store Top Bar -->
+        <header class="store-topbar">
+            <div class="store-topbar-brand">
+                <button type="button" class="nav-opener-btn" onclick="SatayApp.toggleSideNav()" title="Open Navigation Menu" aria-label="Toggle Side Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="nav-logo-icon" style="background:var(--info);">A</div>
+                <div class="brand-text">
+                    <h1>ADMIN CONTROL CENTER</h1>
+                    <p>Sate Tulang Madu Management</p>
+                </div>
+            </div>
+
+            <!-- Active View Status Badge -->
+            <div class="store-topbar-dining-badge" style="background:var(--info-light); color:var(--info); border-color:rgba(59, 111, 160, 0.25);">
+                👑 <span id="topbar-admin-title">Executive Overview</span>
+            </div>
+
+            <div class="store-topbar-actions" style="margin-left:auto;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="AdminApp.fetchDashboardStats(); SatayApp.showToast('Data refreshed!', 'info');" style="font-size:0.78rem;">
+                    🔄 Refresh Data
+                </button>
+                <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.78rem; padding:0.35rem 0.75rem; border-color:rgba(181, 61, 46, 0.3); color:var(--danger);">
+                    Logout
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="store-content container-fluid">
         <!-- 1. DASHBOARD & ANALYTICS TAB -->
         <section id="tab-dashboard">
             <div style="margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center;">
@@ -455,6 +532,7 @@ $currentUser = get_current_auth_user();
             </div>
         </section>
     </main>
+</div><!-- /.store-canvas -->
 
     <!-- Add / Edit Menu Item Modal -->
     <div class="modal-overlay" id="menu-modal">

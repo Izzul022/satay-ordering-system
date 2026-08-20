@@ -110,6 +110,29 @@ const ClientApp = {
     });
   },
 
+  switchTab(tab) {
+    this.activeTab = tab;
+    document.querySelectorAll('.client-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+
+    const sections = ['kds', 'pos', 'stock'];
+    sections.forEach(s => {
+      const el = document.getElementById(`view-${s}`);
+      if (el) el.style.display = (s === tab) ? 'block' : 'none';
+    });
+
+    const titleMap = {
+      'kds': this.isDrinkStaff() ? 'Drink Station Queue' : 'Kitchen Orders Display (KDS)',
+      'pos': 'Walk-In Cashier POS',
+      'stock': 'Live Menu Stock Manager'
+    };
+    const titleBadge = document.getElementById('topbar-kitchen-title');
+    if (titleBadge && titleMap[tab]) {
+      titleBadge.textContent = titleMap[tab];
+    }
+  },
+
   // Test Handphone Ringtone, Vibration & Push Notification
   async enableAndTestNotification() {
     if ('Notification' in window && Notification.permission !== 'granted') {

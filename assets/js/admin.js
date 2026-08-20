@@ -75,22 +75,35 @@ const AdminApp = {
  },
 
  switchTab(tab) {
- this.activeTab = tab;
- document.querySelectorAll('.admin-nav-item').forEach(btn => {
- btn.classList.toggle('active', btn.dataset.tab === tab);
- });
+    this.activeTab = tab;
+    document.querySelectorAll('.admin-nav-item').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
 
- const sections = ['dashboard', 'menu', 'orders', 'tables', 'users', 'settings'];
- sections.forEach(s => {
- const el = document.getElementById(`tab-${s}`);
- if (el) el.style.display = (s === tab) ? 'block' : 'none';
- });
+    const titleMap = {
+      'dashboard': 'Executive Overview',
+      'menu': 'Menu Catalog CRUD',
+      'orders': 'Live Orders Master',
+      'tables': 'Table QRs & Stands',
+      'users': 'Staff & Customer Accounts',
+      'settings': 'Store & System Settings'
+    };
+    const titleBadge = document.getElementById('topbar-admin-title');
+    if (titleBadge && titleMap[tab]) {
+      titleBadge.textContent = titleMap[tab];
+    }
 
- if (tab === 'dashboard') this.fetchDashboardStats();
- if (tab === 'orders') this.fetchOrders();
- if (tab === 'tables') this.fetchTables();
- if (tab === 'users') this.fetchUsers();
- },
+    const sections = ['dashboard', 'menu', 'orders', 'tables', 'users', 'settings'];
+    sections.forEach(s => {
+      const el = document.getElementById(`tab-${s}`);
+      if (el) el.style.display = (s === tab) ? 'block' : 'none';
+    });
+
+    if (tab === 'dashboard') this.fetchDashboardStats();
+    if (tab === 'orders') this.fetchOrders();
+    if (tab === 'tables') this.fetchTables();
+    if (tab === 'users') this.fetchUsers();
+  },
 
  // 1. Dashboard Analytics
  async fetchDashboardStats() {
