@@ -239,7 +239,7 @@ if (!$currentUser) {
                     </div>
                 </div>
                 <div class="store-hero-right">
-                    <img src="https://images.unsplash.com/photo-1529543544282-ea669407fca3?auto=format&fit=crop&w=600&q=80" alt="Sate Tulang Madu Grill" class="store-hero-img">
+                    <img src="assets/images/sate_tulang_e3da94.png" alt="Sate Tulang Madu Grill" class="store-hero-img">
                 </div>
             </section>
 
