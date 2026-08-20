@@ -298,7 +298,6 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
                                 <th>Category</th>
                                 <th>Unit Price</th>
                                 <th>Quantity Left</th>
-                                <th>Quick Adjust (+/-)</th>
                                 <th>Status / Toggle</th>
                             </tr>
                         </thead>

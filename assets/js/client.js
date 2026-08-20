@@ -754,15 +754,6 @@ const ClientApp = {
             </div>
           </td>
           <td>
-            <div style="display:flex; gap:4px; flex-wrap:wrap;">
-              <button class="btn btn-sm btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="ClientApp.adjustStockDelta(${item.id}, -10)">-10</button>
-              <button class="btn btn-sm btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="ClientApp.adjustStockDelta(${item.id}, -5)">-5</button>
-              <button class="btn btn-sm btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="ClientApp.adjustStockDelta(${item.id}, 5)">+5</button>
-              <button class="btn btn-sm btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="ClientApp.adjustStockDelta(${item.id}, 10)">+10</button>
-              <button class="btn btn-sm btn-secondary" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="ClientApp.adjustStockDelta(${item.id}, 50)">+50</button>
-            </div>
-          </td>
-          <td>
             <button class="btn btn-sm ${isAvailable ? 'btn-danger' : 'btn-success'}" style="width:120px;" onclick="ClientApp.toggleStock(${item.id}, ${isAvailable ? 0 : 1})">
               ${isAvailable ? '🔴 Mark Sold Out' : '🟢 Set Available'}
             </button>
