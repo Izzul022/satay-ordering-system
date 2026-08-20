@@ -33,7 +33,7 @@ if (!$currentUser) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Sate Tulang Madu - Charcoal Grilled Skewers & Platters</title>
-    <meta name="description" content="Order authentic charcoal-grilled Sate Tulang Madu, Satay Ayam, Daging, Kambing, and Sharing Platters with rich peanut sauce for Dine-In, Takeaway, and Delivery.">
+    <meta name="description" content="Order authentic charcoal-grilled Sate Tulang Madu, Satay Ayam, Daging, Kambing, and Sharing Platters with rich peanut sauce for Dine-In and Takeaway.">
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%238B4513%22>S</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -96,10 +96,6 @@ if (!$currentUser) {
             <button type="button" class="sidenav-link" onclick="SatayApp.closeSideNav(); document.querySelector('.mode-btn[data-mode=takeaway]')?.click()">
                 <span class="sidenav-link-icon">🥡</span>
                 <span>Takeaway (Bungkus)</span>
-            </button>
-            <button type="button" class="sidenav-link" onclick="SatayApp.closeSideNav(); document.querySelector('.mode-btn[data-mode=delivery]')?.click()">
-                <span class="sidenav-link-icon">🛵</span>
-                <span>Home Delivery</span>
             </button>
 
             <?php if ($currentUser && $currentUser['role'] === 'customer'): ?>
@@ -225,9 +221,6 @@ if (!$currentUser) {
                     <button type="button" class="mode-btn" data-mode="takeaway">
                         Takeaway
                     </button>
-                    <button type="button" class="mode-btn" data-mode="delivery">
-                        Delivery
-                    </button>
                 </div>
             </div>
 
@@ -283,10 +276,6 @@ if (!$currentUser) {
                     <span style="color:var(--text-muted);" id="cart-tax-label">SST (6%):</span>
                     <span id="cart-tax">RM 0.00</span>
                 </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                    <span style="color:var(--text-muted);">Delivery Fee:</span>
-                    <span id="cart-delivery-fee">RM 0.00</span>
-                </div>
                 <div style="display:flex; justify-content:space-between; font-size:1.15rem; font-weight:800; padding-top:6px; border-top:1px solid var(--border-color);">
                     <span>Total:</span>
                     <span id="cart-total" style="color:var(--primary);">RM 0.00</span>
@@ -336,7 +325,7 @@ if (!$currentUser) {
                 <!-- 1. Register Form -->
                 <div class="auth-tab-pane active" id="auth-register">
                     <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:0.85rem; margin-bottom:1rem; font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
-                        Create a free customer account to save your past orders, delivery address, and re-order in 1 tap! Or continue ordering as a guest.
+                        Create a free customer account to save your past orders and re-order in 1 tap! Or continue ordering as a guest.
                     </div>
                     <form id="customer-register-form">
                         <div class="form-group">
@@ -356,10 +345,6 @@ if (!$currentUser) {
                         <div class="form-group">
                             <label class="form-label" for="reg-email">Email Address (Optional):</label>
                             <input type="email" class="form-input" id="reg-email" placeholder="ahmad@example.com">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="reg-address">Delivery Address (Optional):</label>
-                            <textarea class="form-textarea" id="reg-address" rows="2" placeholder="House/Unit #, Street, City, Postcode"></textarea>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="reg-password">Create Password: <span style="color:var(--danger);">*</span></label>
@@ -450,10 +435,6 @@ if (!$currentUser) {
                         <label class="form-label" for="prof-email">Email Address:</label>
                         <input type="email" class="form-input" id="prof-email">
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="prof-address">Default Delivery Address:</label>
-                        <textarea class="form-textarea" id="prof-address" rows="3"></textarea>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="SatayApp.closeModal('profile-modal')">Cancel</button>
@@ -490,16 +471,10 @@ if (!$currentUser) {
                         </select>
                     </div>
 
-                    <!-- Delivery specific -->
-                    <div class="form-group" id="delivery-fields" style="display:none;">
-                        <label class="form-label" for="checkout-address">Delivery Address: <span style="color:var(--danger);">*</span></label>
-                        <textarea class="form-textarea" id="checkout-address" rows="2" placeholder="Full delivery address with unit/floor number"></textarea>
-                    </div>
-
                     <div class="form-group">
                         <label class="form-label" for="checkout-payment">Payment Method:</label>
                         <select class="form-select" id="checkout-payment">
-                            <option value="cash">Cash at Counter / COD</option>
+                            <option value="cash">Cash at Counter / Pay at Counter</option>
                             <option value="qr_pay">DuitNow QR / Touch 'n Go eWallet</option>
                         </select>
                     </div>

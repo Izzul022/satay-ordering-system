@@ -354,7 +354,10 @@ function handle_create_order(PDO $pdo) {
 
     $customer_name = trim($data['customer_name'] ?? '');
     $customer_phone = trim($data['customer_phone'] ?? '');
-    $dining_type = trim($data['dining_type'] ?? 'dine_in'); // dine_in, takeaway, delivery
+    $dining_type = trim($data['dining_type'] ?? 'dine_in'); // dine_in, takeaway
+    if (!in_array($dining_type, ['dine_in', 'takeaway'])) {
+        $dining_type = 'dine_in';
+    }
     $table_number = trim($data['table_number'] ?? '');
     $delivery_address = trim($data['delivery_address'] ?? '');
     $notes = trim($data['notes'] ?? '');
@@ -367,10 +370,6 @@ function handle_create_order(PDO $pdo) {
 
     if ($dining_type === 'dine_in' && empty($table_number)) {
         json_error('Please select or specify your Table Number for Dine-In.');
-    }
-
-    if ($dining_type === 'delivery' && empty($delivery_address)) {
-        json_error('Please provide a delivery address.');
     }
 
     if (empty($items) || !is_array($items)) {
@@ -461,7 +460,7 @@ function handle_create_order(PDO $pdo) {
         }
 
         $tax_amount = round(($subtotal * $tax_percent) / 100, 2);
-        $service_fee = ($dining_type === 'delivery') ? 5.00 : 0.00;
+        $service_fee = 0.00;
         $discount_amount = 0.00;
         $total_amount = round($subtotal + $tax_amount + $service_fee - $discount_amount, 2);
 

@@ -14,7 +14,7 @@ const CustomerApp = {
  menuItems: [],
  activeCategory: 'all',
  searchQuery: '',
- diningType: 'dine_in', // dine_in, takeaway, delivery
+ diningType: 'dine_in', // dine_in, takeaway
  tableNumber: '',
  cart: [],
  activeTrackingOrderNumber: null,
@@ -431,16 +431,13 @@ const CustomerApp = {
  },
 
  updateDiningModeUI() {
- document.querySelectorAll('.mode-btn').forEach(btn => {
- btn.classList.toggle('active', btn.dataset.mode === this.diningType);
- });
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === this.diningType);
+    });
 
- const dineInFields = document.getElementById('dine-in-fields');
- const deliveryFields = document.getElementById('delivery-fields');
-
- if (dineInFields) dineInFields.style.display = (this.diningType === 'dine_in') ? 'block' : 'none';
- if (deliveryFields) deliveryFields.style.display = (this.diningType === 'delivery') ? 'block' : 'none';
- },
+    const dineInFields = document.getElementById('dine-in-fields');
+    if (dineInFields) dineInFields.style.display = (this.diningType === 'dine_in') ? 'block' : 'none';
+  },
 
   async fetchMenu() {
     try {
@@ -824,8 +821,7 @@ const CustomerApp = {
     const taxPercent = (this.taxRatePercent !== undefined && !isNaN(this.taxRatePercent)) ? this.taxRatePercent : 6.0;
     const taxRate = taxPercent / 100;
     const tax = subtotal * taxRate;
-    const deliveryFee = (this.diningType === 'delivery' && subtotal > 0) ? 5.00 : 0.00;
-    const total = subtotal + tax + deliveryFee;
+    const total = subtotal + tax;
 
     // Update floating bubble
     const bubble = document.getElementById('cart-bubble-count');
@@ -837,14 +833,12 @@ const CustomerApp = {
     const subtotalEl = document.getElementById('cart-subtotal');
     const taxEl = document.getElementById('cart-tax');
     const taxLabelEl = document.getElementById('cart-tax-label');
-    const deliveryEl = document.getElementById('cart-delivery-fee');
     const totalEl = document.getElementById('cart-total');
     const stickEl = document.getElementById('cart-stick-count');
 
     if (subtotalEl) subtotalEl.innerText = SatayApp.formatPrice(subtotal);
     if (taxLabelEl) taxLabelEl.innerText = `SST (${taxPercent}%):`;
     if (taxEl) taxEl.innerText = SatayApp.formatPrice(tax);
-    if (deliveryEl) deliveryEl.innerText = SatayApp.formatPrice(deliveryFee);
     if (totalEl) totalEl.innerText = SatayApp.formatPrice(total);
     if (stickEl) stickEl.innerText = `${stickCount} Sticks`;
   },
@@ -858,12 +852,10 @@ const CustomerApp = {
     // Auto pre-populate checkout fields from current session
     const nameInput = document.getElementById('checkout-name');
     const phoneInput = document.getElementById('checkout-phone');
-    const addressInput = document.getElementById('checkout-address');
 
     if (this.currentUser) {
       if (nameInput && !nameInput.value) nameInput.value = this.currentUser.full_name || '';
       if (phoneInput && !phoneInput.value) phoneInput.value = this.currentUser.phone || '';
-      if (addressInput && !addressInput.value) addressInput.value = this.currentUser.address || '';
     } else if (this.guestInfo) {
       if (nameInput && !nameInput.value) nameInput.value = this.guestInfo.name || (this.tableNumber ? `Guest Table ${this.tableNumber}` : 'Guest Customer');
       if (phoneInput && !phoneInput.value) phoneInput.value = this.guestInfo.phone || '';
@@ -879,7 +871,6 @@ const CustomerApp = {
     const name = document.getElementById('checkout-name')?.value.trim() || (this.currentUser ? this.currentUser.full_name : (this.tableNumber ? `Guest Table ${this.tableNumber}` : 'Guest'));
     const phone = document.getElementById('checkout-phone')?.value.trim() || '';
     const table = document.getElementById('checkout-table')?.value.trim() || this.tableNumber;
-    const address = document.getElementById('checkout-address')?.value.trim() || '';
     const notes = document.getElementById('checkout-order-notes')?.value.trim() || '';
     const payment = document.getElementById('checkout-payment')?.value || 'cash';
 
@@ -888,17 +879,11 @@ const CustomerApp = {
       return;
     }
 
-    if (this.diningType === 'delivery' && !address) {
-      SatayApp.showToast('Please enter your delivery address.', 'danger');
-      return;
-    }
-
     const payload = {
       customer_name: name,
       customer_phone: phone,
       dining_type: this.diningType,
       table_number: table,
-      delivery_address: address,
       notes: notes,
       payment_method: payment,
       items: this.cart.map(it => ({

@@ -161,11 +161,6 @@ if (!in_array($activeTab, ['login', 'register', 'guest'])) {
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="reg-address">Delivery Address (Optional):</label>
-                        <textarea class="form-textarea" id="reg-address" rows="2" placeholder="Street, Postcode, City (Saved for delivery orders)"></textarea>
-                    </div>
-
-                    <div class="form-group">
                         <label class="form-label" for="reg-password">Password: <span style="color:var(--danger);">*</span></label>
                         <div class="password-input-wrap">
                             <input type="password" class="form-input" id="reg-password" placeholder="Min. 4 characters" required minlength="4">

@@ -294,7 +294,6 @@ $currentUser = get_current_auth_user();
                         <option value="all">All Dining Types</option>
                         <option value="dine_in">Dine-In</option>
                         <option value="takeaway">Takeaway</option>
-                        <option value="delivery">Delivery</option>
                     </select>
                 </div>
             </div>

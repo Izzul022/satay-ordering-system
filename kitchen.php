@@ -167,7 +167,6 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
                         <button class="kds-filter-pill btn btn-sm btn-secondary active" data-filter="all" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">All Types</button>
                         <button class="kds-filter-pill btn btn-sm btn-secondary" data-filter="dine_in" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">Dine-In</button>
                         <button class="kds-filter-pill btn btn-sm btn-secondary" data-filter="takeaway" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">Takeaway</button>
-                        <button class="kds-filter-pill btn btn-sm btn-secondary" data-filter="delivery" style="border-radius:var(--radius-full); font-size:0.78rem; padding:0.3rem 0.6rem;">Delivery</button>
                     </div>
                 </div>
             </div>
@@ -207,7 +206,6 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
                                 <select class="form-select" id="pos-dining-type" style="padding:0.4rem 0.6rem;">
                                     <option value="dine_in">Dine-In</option>
                                     <option value="takeaway" selected>Takeaway</option>
-                                    <option value="delivery">Delivery</option>
                                 </select>
                             </div>
                             <div>
