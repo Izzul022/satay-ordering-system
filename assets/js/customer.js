@@ -327,13 +327,21 @@ const CustomerApp = {
  body: JSON.stringify({ username, password })
  });
  const data = await res.json();
- if (data.success) {
- this.currentUser = data.user;
- this.guestInfo = null;
- SatayApp.closeModal('customer-auth-modal');
- SatayApp.showToast(`Welcome back, ${data.user.full_name}!`, 'success');
- this.renderNavAuthUI();
- } else {
+        if (data.success) {
+          this.currentUser = data.user;
+          this.guestInfo = null;
+          SatayApp.closeModal('customer-auth-modal');
+          SatayApp.showToast(`Welcome back, ${data.user.full_name}!`, 'success');
+          setTimeout(() => {
+            if (data.user && data.user.role === 'admin') {
+              window.location.href = 'admin.php';
+            } else if (data.user && data.user.role === 'staff') {
+              window.location.href = 'kitchen.php';
+            } else {
+              window.location.reload();
+            }
+          }, 400);
+        } else {
  if (errDiv) {
  errDiv.innerText = data.message || 'Login failed';
  errDiv.style.display = 'block';
@@ -374,13 +382,15 @@ const CustomerApp = {
  body: JSON.stringify({ full_name, username, phone, email, address, password })
  });
  const data = await res.json();
- if (data.success) {
- this.currentUser = data.user;
- this.guestInfo = null;
- SatayApp.closeModal('customer-auth-modal');
- SatayApp.showToast(`Welcome to Sate Tulang Madu, ${data.user.full_name}!`, 'success');
- this.renderNavAuthUI();
- } else {
+        if (data.success) {
+          this.currentUser = data.user;
+          this.guestInfo = null;
+          SatayApp.closeModal('customer-auth-modal');
+          SatayApp.showToast(`Welcome to Sate Tulang Madu, ${data.user.full_name}!`, 'success');
+          setTimeout(() => {
+            window.location.reload();
+          }, 400);
+        } else {
  if (errDiv) {
  errDiv.innerText = data.message || 'Registration failed';
  errDiv.style.display = 'block';
@@ -412,13 +422,15 @@ const CustomerApp = {
  body: JSON.stringify({ name, phone })
  });
  const data = await res.json();
- if (data.success) {
- this.currentUser = null;
- this.guestInfo = data.guest;
- SatayApp.closeModal('customer-auth-modal');
- SatayApp.showToast(`Ordering as Guest: ${data.guest.name}`, 'success');
- this.renderNavAuthUI();
- }
+        if (data.success) {
+          this.currentUser = null;
+          this.guestInfo = data.guest;
+          SatayApp.closeModal('customer-auth-modal');
+          SatayApp.showToast(`Ordering as Guest: ${data.guest.name}`, 'success');
+          setTimeout(() => {
+            window.location.reload();
+          }, 400);
+        }
  } catch (err) {
  console.error(err);
  }
@@ -442,12 +454,14 @@ const CustomerApp = {
  body: JSON.stringify({ full_name, phone, email, address })
  });
  const data = await res.json();
- if (data.success) {
- this.currentUser = data.user;
- SatayApp.closeModal('profile-modal');
- SatayApp.showToast('Profile updated successfully!', 'success');
- this.renderNavAuthUI();
- } else {
+        if (data.success) {
+          this.currentUser = data.user;
+          SatayApp.closeModal('profile-modal');
+          SatayApp.showToast('Profile updated successfully!', 'success');
+          setTimeout(() => {
+            window.location.reload();
+          }, 400);
+        } else {
  SatayApp.showToast(data.message || 'Failed to update profile', 'danger');
  }
  } catch (err) {
