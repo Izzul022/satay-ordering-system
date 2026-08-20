@@ -1274,6 +1274,19 @@ const CustomerApp = {
     `;
   },
 
+  async lookupGuestOrder(orderNum) {
+    const raw = (orderNum || '').trim();
+    if (!raw) {
+      SatayApp.showToast('Please enter an order number (e.g. STY-20260820-001)', 'warning');
+      return;
+    }
+    const cleanNum = raw.toUpperCase();
+    this.saveOrderToHistory(cleanNum);
+    SatayApp.showToast(`Tracking order #${cleanNum}...`, 'info');
+    SatayApp.closeModal('history-modal');
+    this.startLiveTracking(cleanNum);
+  },
+
  // Show past orders modal (Enhanced with DB query for registered users & local search for guests)
  async showOrderHistoryModal() {
  const container = document.getElementById('history-modal-content');
@@ -1309,8 +1322,16 @@ const CustomerApp = {
  }
  }
 
+      const lookupSearchHtml = `
+        <div style="margin-bottom:1rem; display:flex; gap:0.5rem; align-items:center;">
+          <input type="text" id="order-lookup-input" class="form-input" placeholder="🔍 Track Order # (e.g. STY-20260820-001)..." style="font-size:0.82rem; padding:0.45rem 0.75rem;" onkeypress="if(event.key==='Enter') CustomerApp.lookupGuestOrder(this.value)">
+          <button class="btn btn-secondary btn-sm" style="white-space:nowrap; padding:0.45rem 0.85rem;" onclick="CustomerApp.lookupGuestOrder(document.getElementById('order-lookup-input').value)">Track</button>
+        </div>
+      `;
+
  if (orders.length === 0) {
  container.innerHTML = `
+ ${lookupSearchHtml}
  <div style="text-align:center; padding:2.5rem 1rem; color:var(--text-muted);">
  <div style="font-size:2.5rem; margin-bottom:0.5rem;"></div>
  <h4 style="color:var(--text-main); margin-bottom:0.25rem;">No past orders found</h4>
@@ -1388,12 +1409,13 @@ const CustomerApp = {
  `;
  }).join('');
 
- container.innerHTML = `
- ${guestBanner}
- <div style="max-height:420px; overflow-y:auto; padding-right:4px;">
- ${ordersListHtml}
- </div>
- `;
+  container.innerHTML = `
+    ${lookupSearchHtml}
+    ${guestBanner}
+    <div style="max-height:420px; overflow-y:auto; padding-right:4px;">
+      ${ordersListHtml}
+    </div>
+  `;
 
  } catch (e) {
  console.error('History load error:', e);
