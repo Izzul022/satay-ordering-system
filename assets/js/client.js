@@ -537,15 +537,15 @@ const ClientApp = {
     if (!grid) return;
 
     grid.innerHTML = this.menuItems.map(item => `
-      <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem; display:flex; flex-direction:column; justify-content:space-between;">
+      <div class="pos-dish-card">
         <div>
-          <div style="font-weight:700; font-size:1rem; margin-bottom:2px;">${SatayApp.escapeHtml(item.name)}</div>
-          <div style="color:var(--gold); font-weight:800; font-size:1.1rem; margin-bottom:0.75rem;">
-            ${SatayApp.formatPrice(item.price_per_unit)} <span style="font-size:0.75rem; color:var(--text-muted);">/ ${SatayApp.escapeHtml(item.unit_name)}</span>
+          <div class="pos-dish-title">${SatayApp.escapeHtml(item.name)}</div>
+          <div class="pos-dish-price">
+            ${SatayApp.formatPrice(item.price_per_unit)} <span>/ ${SatayApp.escapeHtml(item.unit_name)}</span>
           </div>
         </div>
 
-        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+        <div style="display:flex; gap:3px; flex-wrap:wrap;">
           <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="ClientApp.addToPOSCart(${item.id}, 1)">+1</button>
           ${item.unit_name === 'cucuk' ? `
             <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="ClientApp.addToPOSCart(${item.id}, 5)">+5</button>

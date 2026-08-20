@@ -181,15 +181,15 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
 
         <!-- 2. CASHIER WALK-IN POS VIEW -->
         <section id="view-pos" style="display:none;">
-            <div style="display:grid; grid-template-columns: 1fr 380px; gap:1.5rem;">
+            <div class="pos-layout-container">
                 <!-- POS Menu Grid -->
                 <div>
-                    <div style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
-                        <h3>Quick Order Selection</h3>
-                        <p style="font-size:0.85rem; color:var(--text-muted);">Click items to add to POS ticket</p>
+                    <div class="pos-header-text" style="margin-bottom:1rem; display:flex; flex-direction:column; gap:0.2rem;">
+                        <h3 style="font-size:1.15rem;">Quick Order Selection</h3>
+                        <p style="font-size:0.8rem; color:var(--text-muted);">Click items to add to POS ticket</p>
                     </div>
 
-                    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;" id="pos-menu-grid">
+                    <div class="pos-menu-grid" id="pos-menu-grid">
                         <!-- Populated via client.js -->
                     </div>
                 </div>
