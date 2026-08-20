@@ -248,18 +248,6 @@ if (!$currentUser) {
                 <!-- Dynamically populated by customer.js -->
             </nav>
 
-            <!-- Section Header -->
-            <div class="store-section-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
-                <div>
-                    <h2 id="store-section-title">Featured Menu Catalog</h2>
-                    <div class="store-section-meta">
-                        <span class="store-item-count" id="store-item-count">0 items available</span>
-                    </div>
-                <div style="position:relative; width:100%; max-width:320px;">
-                    <input type="text" id="search-menu" class="form-input" placeholder="🔍 Search skewers, platters..." style="width:100%; border-radius:var(--radius-full); padding:0.5rem 1rem; font-size:0.85rem;">
-                </div>
-            </div>
-
             <!-- Menu Cards Grid (unchanged ID — customer.js targets this) -->
             <section class="menu-grid" id="menu-grid">
                 <!-- Dynamically loaded via customer.js -->
