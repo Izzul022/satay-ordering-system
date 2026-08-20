@@ -79,17 +79,13 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
                 <span>Test Phone Ring & Vibration</span>
             </button>
 
-            <div class="sidenav-section-title">Quick Portals</div>
             <?php if ($currentUser['role'] === 'admin'): ?>
+                <div class="sidenav-section-title">Quick Portals</div>
                 <a href="admin.php" class="sidenav-link">
                     <span class="sidenav-link-icon">👑</span>
                     <span>Admin Control Center</span>
                 </a>
             <?php endif; ?>
-            <a href="index.php" class="sidenav-link">
-                <span class="sidenav-link-icon">🛒</span>
-                <span>Customer Ordering View</span>
-            </a>
         </nav>
 
         <div class="sidenav-footer">
@@ -145,17 +141,13 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
                 <span>Test Ring & Vibration</span>
             </button>
 
-            <div class="store-sb-section">Quick Portals</div>
             <?php if ($currentUser['role'] === 'admin'): ?>
+                <div class="store-sb-section">Quick Portals</div>
                 <a href="admin.php" class="store-sb-link">
                     <span class="store-sb-link-icon">👑</span>
                     <span>Admin Control Center</span>
                 </a>
             <?php endif; ?>
-            <a href="index.php" class="store-sb-link">
-                <span class="store-sb-link-icon">🛒</span>
-                <span>Customer View</span>
-            </a>
         </nav>
 
         <!-- Sidebar Footer -->
@@ -218,10 +210,6 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
         <section id="view-kds">
             <!-- Grill / Drinks Aggregator Bar -->
             <div class="kds-header">
-                <div class="grill-aggregator-bar" id="grill-aggregator-content">
-                    <span style="color:var(--text-muted);">Loading live queue counters...</span>
-                </div>
-
                 <div style="display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap;">
                     <!-- Station Filter Selector -->
                     <div style="display:flex; gap:3px; background:var(--bg-card); padding:3px; border-radius:var(--radius-full); border:1px solid var(--border-color);">
