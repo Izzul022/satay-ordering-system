@@ -267,14 +267,17 @@ button, input, select, textarea {
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.3rem;
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0.65rem;
   border-radius: var(--radius-full);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-family: var(--font-body);
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 .badge-primary { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(139, 69, 19, 0.2); }
@@ -283,6 +286,70 @@ button, input, select, textarea {
 .badge-info { background: var(--info-light); color: var(--info); border: 1px solid rgba(59, 111, 160, 0.2); }
 .badge-danger { background: var(--danger-light); color: var(--danger); border: 1px solid rgba(181, 61, 46, 0.2); }
 .badge-neutral { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); }
+
+/* ---- Data Tables & Mobile Responsive Table Styling ---- */
+.table-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+.table-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.88rem;
+}
+
+.data-table th {
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 0.95rem 1.15rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.data-table td strong {
+  white-space: normal;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background: rgba(139, 69, 19, 0.02);
+}
 
 /* Hero Banner (Customer View) */
 .hero-banner {
