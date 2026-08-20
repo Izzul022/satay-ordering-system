@@ -145,16 +145,6 @@ $currentUser = get_current_auth_user();
                 <span class="store-sb-link-icon">⚙️</span>
                 <span>Store Settings</span>
             </button>
-
-            <div class="store-sb-section">Quick Portals</div>
-            <a href="kitchen.php" class="store-sb-link">
-                <span class="store-sb-link-icon">🍳</span>
-                <span>Kitchen Display (KDS)</span>
-            </a>
-            <a href="index.php" class="store-sb-link">
-                <span class="store-sb-link-icon">🛒</span>
-                <span>Customer Ordering View</span>
-            </a>
         </nav>
 
         <!-- Sidebar Footer -->
