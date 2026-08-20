@@ -68,8 +68,18 @@ function handle_get(PDO $pdo)
         }
     }
 
+    // Fetch Tax Rate Setting configured by Admin
+    $tax_rate_percent = 6.0;
+    try {
+        $tax_row = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'tax_rate_percent'")->fetch();
+        if ($tax_row && is_numeric($tax_row['setting_value'])) {
+            $tax_rate_percent = (float)$tax_row['setting_value'];
+        }
+    } catch (Exception $e) {}
+
     json_response([
         'success' => true,
+        'tax_rate_percent' => $tax_rate_percent,
         'categories' => $categories,
         'items' => $items,
         'grouped' => array_values($grouped)

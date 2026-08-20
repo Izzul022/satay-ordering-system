@@ -73,6 +73,22 @@ if (!in_array($activeTab, ['login', 'register', 'guest'])) {
             <!-- Global Error / Alert Box -->
             <div id="auth-error-msg" style="display:none; background:var(--danger-light); border:1px solid var(--danger); color:var(--danger); padding:0.75rem; border-radius:var(--radius-md); font-size:0.84rem; margin-bottom:1.25rem; text-align:center; font-weight:600;"></div>
 
+            <?php
+            $scannedTable = $_GET['table'] ?? '';
+            if (empty($scannedTable) && !empty($redirect) && preg_match('/table=([^&]+)/', $redirect, $m)) {
+                $scannedTable = urldecode($m[1]);
+            }
+            ?>
+            <?php if (!empty($scannedTable)): ?>
+                <div style="background:linear-gradient(135deg, rgba(139, 69, 19, 0.08), rgba(212, 160, 23, 0.12)); border:1px dashed var(--gold); border-radius:var(--radius-md); padding:0.85rem; margin-bottom:1.25rem; text-align:center;">
+                    <div style="font-weight:800; font-size:0.92rem; color:var(--text-main); margin-bottom:0.2rem;">📍 Table QR Detected: Table <?php echo htmlspecialchars($scannedTable); ?></div>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.6rem;">Sign in, register a new account, or jump directly to the menu to order right away.</p>
+                    <a href="index.php?table=<?php echo urlencode($scannedTable); ?>" class="btn btn-primary btn-sm" style="font-size:0.8rem; padding:0.35rem 0.85rem; width:100%; justify-content:center;">
+                        🍽️ Order Directly as Guest (Table <?php echo htmlspecialchars($scannedTable); ?>)
+                    </a>
+                </div>
+            <?php endif; ?>
+
             <!-- Navigation Tabs (Sign In, Register, Guest Mode) -->
             <div class="auth-tabs-nav">
                 <button type="button" class="auth-tab-btn <?php echo ($activeTab === 'login') ? 'active' : ''; ?>" id="tab-btn-login" onclick="AuthApp.switchTab('login')">

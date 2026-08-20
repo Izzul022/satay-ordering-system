@@ -14,12 +14,17 @@ if ($currentUser) {
     }
 }
 
-// If user is not logged in AND not a guest, redirect to login page
-if (!$currentUser && !$guestInfo) {
-    $queryString = !empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '';
-    $redirectUrl = 'index.php' . $queryString;
-    header('Location: login.php?redirect=' . urlencode($redirectUrl));
-    exit;
+// Auto-initialize guest session if customer is not logged in
+$tableParam = trim($_GET['table'] ?? '');
+if (!$currentUser) {
+    if (!$guestInfo) {
+        $_SESSION['is_guest'] = true;
+        $_SESSION['guest_name'] = !empty($tableParam) ? "Guest Table " . htmlspecialchars($tableParam) : "Guest Customer";
+        $guestInfo = get_guest_info();
+    } elseif (!empty($tableParam) && strpos($guestInfo['guest_name'] ?? '', 'Guest') === 0) {
+        $_SESSION['guest_name'] = "Guest Table " . htmlspecialchars($tableParam);
+        $guestInfo['guest_name'] = $_SESSION['guest_name'];
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -125,17 +130,10 @@ if (!$currentUser && !$guestInfo) {
                 <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(181, 61, 46, 0.3); width:100%; justify-content:center;">
                     Sign Out
                 </a>
-            <?php elseif ($guestInfo): ?>
-                <a href="login.php?tab=login" class="btn btn-primary btn-sm" style="width:100%; justify-content:center; margin-bottom:0.35rem;">
-                    Sign In / Register
-                </a>
-                <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="color:var(--danger); border-color:rgba(181, 61, 46, 0.3); width:100%; justify-content:center;">
-                    Exit Guest Mode
-                </a>
             <?php else: ?>
-                <a href="login.php?tab=login" class="btn btn-primary btn-sm" style="width:100%; justify-content:center;">
-                    Sign In / Register
-                </a>
+                <button type="button" class="btn btn-primary btn-sm" onclick="SatayApp.closeSideNav(); CustomerApp.openAuthModal('register')" style="width:100%; justify-content:center;">
+                    ✨ Register / Sign In
+                </button>
             <?php endif; ?>
         </div>
     </aside>
@@ -193,20 +191,17 @@ if (!$currentUser && !$guestInfo) {
                                 </a>
                                 <div class="profile-dropdown-divider"></div>
                             <?php endif; ?>
-                            <a href="logout.php?redirect=login.php" class="profile-dropdown-item" style="color:var(--danger);">
+                            <a href="logout.php?redirect=index.php" class="profile-dropdown-item" style="color:var(--danger);">
                                 Sign Out
                             </a>
                         </div>
                     </div>
-                <?php elseif ($guestInfo): ?>
-                    <!-- Guest Mode Switch to Sign In / Exit -->
+                <?php else: ?>
+                    <!-- Guest Mode Switch to Sign In / Register Modal -->
                     <div style="display:flex; align-items:center; gap:0.5rem;">
-                        <a href="login.php?tab=login" class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:0.35rem 0.75rem;">
-                            Sign In / Register
-                        </a>
-                        <a href="logout.php?redirect=login.php" class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:0.35rem 0.6rem; color:var(--danger);" title="Exit Guest Mode">
-                            Exit
-                        </a>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="CustomerApp.openAuthModal('register')" style="font-size:0.78rem; padding:0.4rem 0.85rem; font-weight:600;">
+                            ✨ Register / Sign In
+                        </button>
                     </div>
                 <?php endif; ?>
             </div>
@@ -243,9 +238,6 @@ if (!$currentUser && !$guestInfo) {
                 </div>
             </div>
         </section>
-        
-        <!-- Scanned Table Banner (Dynamically displayed when arriving via QR code) -->
-        <div id="table-scanned-banner" style="display:none;"></div>
 
         <!-- Category Nav Filter -->
         <nav class="category-nav" id="category-nav">
@@ -288,7 +280,7 @@ if (!$currentUser && !$guestInfo) {
                     <span id="cart-subtotal">RM 0.00</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                    <span style="color:var(--text-muted);">SST (6%):</span>
+                    <span style="color:var(--text-muted);" id="cart-tax-label">SST (6%):</span>
                     <span id="cart-tax">RM 0.00</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
@@ -320,60 +312,45 @@ if (!$currentUser && !$guestInfo) {
         </div>
     </div>
 
-    <!-- Customer Auth Modal (Login / Register / Guest Mode) -->
+    <!-- Customer Auth Modal (Register / Sign In / Guest Mode) -->
     <div class="modal-overlay" id="customer-auth-modal">
-        <div class="modal-box" style="width: 480px;">
+        <div class="modal-box" style="width: 500px;">
             <div class="modal-header">
-                <h3 id="auth-modal-title">Customer Account & Access</h3>
+                <h3 id="auth-modal-title">Customer Registration & Sign In</h3>
                 <button class="btn btn-secondary btn-icon" onclick="SatayApp.closeModal('customer-auth-modal')">&#10005;</button>
             </div>
             <div class="modal-body">
                 <!-- Auth Tabs Navigation -->
                 <div class="auth-tabs-nav">
-                    <button type="button" class="auth-tab-btn active" data-tab="auth-login" onclick="CustomerApp.switchAuthTab('auth-login')">
-                        Sign In
+                    <button type="button" class="auth-tab-btn active" data-tab="auth-register" onclick="CustomerApp.switchAuthTab('auth-register')">
+                        ✨ Register
                     </button>
-                    <button type="button" class="auth-tab-btn" data-tab="auth-register" onclick="CustomerApp.switchAuthTab('auth-register')">
-                        Register
+                    <button type="button" class="auth-tab-btn" data-tab="auth-login" onclick="CustomerApp.switchAuthTab('auth-login')">
+                        🔑 Sign In
                     </button>
                     <button type="button" class="auth-tab-btn" data-tab="auth-guest" onclick="CustomerApp.switchAuthTab('auth-guest')">
-                        Guest Mode
+                        ⚡ Guest Mode
                     </button>
                 </div>
 
-                <!-- 1. Sign In Form -->
-                <div class="auth-tab-pane active" id="auth-login">
-                    <form id="customer-login-form">
-                        <div class="form-group">
-                            <label class="form-label" for="cust-login-user">Username, Email, or Phone:</label>
-                            <input type="text" class="form-input" id="cust-login-user" placeholder="e.g. ahmad or 012-9876543" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="cust-login-pass">Password:</label>
-                            <input type="password" class="form-input" id="cust-login-pass" placeholder="••••••••" required>
-                        </div>
-                        <div id="cust-login-error" style="display:none; color:var(--danger); font-size:0.85rem; margin-bottom:0.75rem; text-align:center;"></div>
-                        <button type="submit" class="btn btn-primary" id="btn-cust-login" style="width:100%; padding:0.8rem;">
-                            Sign In to Account
-                        </button>
-                    </form>
-                </div>
-
-                <!-- 2. Register Form -->
-                <div class="auth-tab-pane" id="auth-register">
+                <!-- 1. Register Form -->
+                <div class="auth-tab-pane active" id="auth-register">
+                    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:0.85rem; margin-bottom:1rem; font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
+                        Create a free customer account to save your past orders, delivery address, and re-order in 1 tap! Or continue ordering as a guest.
+                    </div>
                     <form id="customer-register-form">
                         <div class="form-group">
-                            <label class="form-label" for="reg-fullname">Full Name:</label>
+                            <label class="form-label" for="reg-fullname">Full Name: <span style="color:var(--danger);">*</span></label>
                             <input type="text" class="form-input" id="reg-fullname" placeholder="e.g. Ahmad Firdaus" required>
                         </div>
                         <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
                             <div class="form-group">
-                                <label class="form-label" for="reg-username">Username:</label>
-                                <input type="text" class="form-input" id="reg-username" placeholder="ahmad123" required>
+                                <label class="form-label" for="reg-username">Username: <span style="color:var(--danger);">*</span></label>
+                                <input type="text" class="form-input" id="reg-username" placeholder="e.g. ahmad123" required>
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="reg-phone">Phone Number:</label>
-                                <input type="tel" class="form-input" id="reg-phone" placeholder="012-3456789" required>
+                                <input type="tel" class="form-input" id="reg-phone" placeholder="012-3456789">
                             </div>
                         </div>
                         <div class="form-group">
@@ -385,35 +362,65 @@ if (!$currentUser && !$guestInfo) {
                             <textarea class="form-textarea" id="reg-address" rows="2" placeholder="House/Unit #, Street, City, Postcode"></textarea>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="reg-password">Create Password:</label>
-                            <input type="password" class="form-input" id="reg-password" placeholder="Min. 4 characters" required>
+                            <label class="form-label" for="reg-password">Create Password: <span style="color:var(--danger);">*</span></label>
+                            <div class="password-input-wrap">
+                                <input type="password" class="form-input" id="reg-password" placeholder="Min. 4 characters" required minlength="4">
+                                <button type="button" class="password-toggle-btn" onclick="CustomerApp.toggleInputPassword('reg-password', this)" title="Show/Hide Password">👁️</button>
+                            </div>
                         </div>
                         <div id="cust-reg-error" style="display:none; color:var(--danger); font-size:0.85rem; margin-bottom:0.75rem; text-align:center;"></div>
-                        <button type="submit" class="btn btn-primary" id="btn-cust-register" style="width:100%; padding:0.8rem;">
+                        <button type="submit" class="btn btn-primary" id="btn-cust-register" style="width:100%; padding:0.8rem; font-weight:600;">
                             Create Account & Start Ordering
                         </button>
                     </form>
+                    <div style="margin-top:0.75rem; text-align:center; font-size:0.8rem; color:var(--text-muted);">
+                        Already have an account? <a href="javascript:void(0)" onclick="CustomerApp.switchAuthTab('auth-login')" style="color:var(--primary); font-weight:600;">Sign In here</a>
+                    </div>
+                </div>
+
+                <!-- 2. Sign In Form -->
+                <div class="auth-tab-pane" id="auth-login">
+                    <form id="customer-login-form">
+                        <div class="form-group">
+                            <label class="form-label" for="cust-login-user">Username, Email, or Phone:</label>
+                            <input type="text" class="form-input" id="cust-login-user" placeholder="e.g. username or 012-9876543" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="cust-login-pass">Password:</label>
+                            <div class="password-input-wrap">
+                                <input type="password" class="form-input" id="cust-login-pass" placeholder="••••••••" required>
+                                <button type="button" class="password-toggle-btn" onclick="CustomerApp.toggleInputPassword('cust-login-pass', this)" title="Show/Hide Password">👁️</button>
+                            </div>
+                        </div>
+                        <div id="cust-login-error" style="display:none; color:var(--danger); font-size:0.85rem; margin-bottom:0.75rem; text-align:center;"></div>
+                        <button type="submit" class="btn btn-primary" id="btn-cust-login" style="width:100%; padding:0.8rem; font-weight:600;">
+                            Sign In to Account
+                        </button>
+                    </form>
+                    <div style="margin-top:0.75rem; text-align:center; font-size:0.8rem; color:var(--text-muted);">
+                        Need an account? <a href="javascript:void(0)" onclick="CustomerApp.switchAuthTab('auth-register')" style="color:var(--primary); font-weight:600;">Register now</a>
+                    </div>
                 </div>
 
                 <!-- 3. Guest Mode Form -->
                 <div class="auth-tab-pane" id="auth-guest">
                     <div style="background:var(--gold-light); border:1px solid rgba(155, 106, 47, 0.25); border-radius:var(--radius-md); padding:1rem; margin-bottom:1.25rem;">
-                        <h4 style="color:var(--gold); font-size:0.92rem; margin-bottom:0.35rem; font-family:var(--font-body); font-weight:700;">Quick Guest Ordering</h4>
+                        <h4 style="color:var(--gold); font-size:0.92rem; margin-bottom:0.35rem; font-family:var(--font-body); font-weight:700;">Fast Guest Ordering</h4>
                         <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.4;">
-                            No account needed! Just enter your nickname and phone number so the kitchen knows who to call when your skewers are hot & ready.
+                            No password or registration required! Set your nickname for your order receipts.
                         </p>
                     </div>
 
                     <form id="customer-guest-form">
                         <div class="form-group">
                             <label class="form-label" for="guest-nickname">Your Nickname / Name:</label>
-                            <input type="text" class="form-input" id="guest-nickname" placeholder="e.g. Bob or Sarah" required value="<?php echo htmlspecialchars($guestInfo['guest_name'] ?? ''); ?>">
+                            <input type="text" class="form-input" id="guest-nickname" placeholder="e.g. Bob or Sarah" required value="<?php echo htmlspecialchars($guestInfo['guest_name'] ?? 'Guest Customer'); ?>">
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="guest-phone">Phone Number (For WhatsApp / SMS Alerts):</label>
                             <input type="tel" class="form-input" id="guest-phone" placeholder="e.g. 012-3456789" value="<?php echo htmlspecialchars($guestInfo['guest_phone'] ?? ''); ?>">
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.8rem;">
+                        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.8rem; font-weight:600;">
                             Continue as Guest
                         </button>
                     </form>
@@ -466,7 +473,7 @@ if (!$currentUser && !$guestInfo) {
             <form id="checkout-form">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label class="form-label" for="checkout-name">Your Name / Nickname:</label>
+                        <label class="form-label" for="checkout-name">Your Name / Nickname: <span style="color:var(--danger);">*</span></label>
                         <input type="text" class="form-input" id="checkout-name" placeholder="e.g. Encik Farhan" required>
                     </div>
 
@@ -477,7 +484,7 @@ if (!$currentUser && !$guestInfo) {
 
                     <!-- Dine-in specific -->
                     <div class="form-group" id="dine-in-fields">
-                        <label class="form-label" for="checkout-table">Choose Dining Table:</label>
+                        <label class="form-label" for="checkout-table">Choose Dining Table: <span style="color:var(--danger);">*</span></label>
                         <select class="form-select" id="checkout-table">
                             <option value="">-- Select Table --</option>
                         </select>
@@ -485,7 +492,7 @@ if (!$currentUser && !$guestInfo) {
 
                     <!-- Delivery specific -->
                     <div class="form-group" id="delivery-fields" style="display:none;">
-                        <label class="form-label" for="checkout-address">Delivery Address:</label>
+                        <label class="form-label" for="checkout-address">Delivery Address: <span style="color:var(--danger);">*</span></label>
                         <textarea class="form-textarea" id="checkout-address" rows="2" placeholder="Full delivery address with unit/floor number"></textarea>
                     </div>
 

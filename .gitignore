@@ -1,0 +1,17 @@
+# Environment & Sessions
+data/sessions/
+data/*.sqlite-wal
+data/*.sqlite-shm
+
+# Android & Gradle
+.gradle/
+android-app/android/.gradle/
+android-app/android/build/
+android-app/android/app/build/
+android-app/android/local.properties
+*.iml
+.idea/
+
+# OS / Editor
+.DS_Store
+Thumbs.db

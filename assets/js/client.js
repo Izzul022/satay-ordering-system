@@ -496,8 +496,12 @@ const ClientApp = {
       const res = await fetch('api/menu.php?all=1');
       const data = await res.json();
       if (data.success) {
-        this.menuItems = data.items;
+        this.menuItems = data.items || [];
+        if (data.tax_rate_percent !== undefined) {
+          this.taxRatePercent = parseFloat(data.tax_rate_percent);
+        }
         this.renderPOSGrid();
+        this.renderPOSCart();
       }
     } catch (e) {
       console.error(e);
@@ -586,14 +590,17 @@ const ClientApp = {
       `;
     }).join('');
 
-    const tax = subtotal * 0.06;
+    const taxPercent = (this.taxRatePercent !== undefined && !isNaN(this.taxRatePercent)) ? this.taxRatePercent : 6.0;
+    const tax = subtotal * (taxPercent / 100);
     const total = subtotal + tax;
 
     const subtotalEl = document.getElementById('pos-subtotal');
     const taxEl = document.getElementById('pos-tax');
+    const taxLabelEl = document.getElementById('pos-tax-label');
     const totalEl = document.getElementById('pos-total');
 
     if (subtotalEl) subtotalEl.innerText = SatayApp.formatPrice(subtotal);
+    if (taxLabelEl) taxLabelEl.innerText = `SST (${taxPercent}%):`;
     if (taxEl) taxEl.innerText = SatayApp.formatPrice(tax);
     if (totalEl) totalEl.innerText = SatayApp.formatPrice(total);
 

@@ -479,6 +479,54 @@ function handle_create_order(PDO $pdo) {
         $auth_user = get_current_auth_user();
         $user_id = $auth_user ? (int)$auth_user['id'] : null;
         $is_guest = $auth_user ? 0 : 1;
+        $new_registered_user = null;
+
+        // Support optional inline registration during checkout
+        if (!$auth_user && !empty($data['create_account']) && !empty($data['reg_password'])) {
+            $reg_pass = trim($data['reg_password']);
+            if (strlen($reg_pass) >= 4) {
+                $reg_user = trim($data['reg_username'] ?? '');
+                if (empty($reg_user)) {
+                    $sanitized_name = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $customer_name));
+                    $reg_user = !empty($sanitized_name) ? $sanitized_name . rand(100, 999) : 'user_' . substr(md5(uniqid()), 0, 6);
+                }
+
+                // Check if username already exists
+                $chk_stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+                $chk_stmt->execute([$reg_user]);
+                if ($chk_stmt->fetch()) {
+                    $reg_user = $reg_user . '_' . rand(10, 99);
+                }
+
+                $pass_hash = password_hash($reg_pass, PASSWORD_DEFAULT);
+                $ins_user = $pdo->prepare("
+                    INSERT INTO users (username, password_hash, full_name, phone, address, role)
+                    VALUES (?, ?, ?, ?, ?, 'customer')
+                ");
+                $ins_user->execute([$reg_user, $pass_hash, $customer_name, $customer_phone, $delivery_address]);
+                $user_id = (int)$pdo->lastInsertId();
+                $is_guest = 0;
+
+                // Log in new user with persistent session
+                unset($_SESSION['is_guest'], $_SESSION['guest_name'], $_SESSION['guest_phone']);
+                $_SESSION['user_id'] = $user_id;
+                $_SESSION['username'] = $reg_user;
+                $_SESSION['full_name'] = $customer_name;
+                $_SESSION['phone'] = $customer_phone;
+                $_SESSION['address'] = $delivery_address;
+                $_SESSION['role'] = 'customer';
+
+                create_user_remember_token($pdo, $user_id);
+
+                $new_registered_user = [
+                    'id' => $user_id,
+                    'username' => $reg_user,
+                    'full_name' => $customer_name,
+                    'phone' => $customer_phone,
+                    'role' => 'customer'
+                ];
+            }
+        }
 
         // Auto-mark as paid for QR pay/cash POS if passed
         $payment_status = (isset($data['payment_status']) && $data['payment_status'] === 'paid') ? 'paid' : ($payment_method === 'cash' ? 'unpaid' : 'paid');
@@ -524,8 +572,8 @@ function handle_create_order(PDO $pdo) {
 
         $deduct_stock_stmt = $pdo->prepare("
             UPDATE menu_items 
-            SET stock_quantity = MAX(0, stock_quantity - ?),
-                is_available = CASE WHEN (stock_quantity - ?) <= 0 THEN 0 ELSE is_available END
+            SET stock_quantity = CASE WHEN stock_quantity IS NOT NULL THEN MAX(0, stock_quantity - ?) ELSE NULL END,
+                is_available = CASE WHEN stock_quantity IS NOT NULL AND (stock_quantity - ?) <= 0 THEN 0 ELSE is_available END
             WHERE id = ?
         ");
 
@@ -554,15 +602,21 @@ function handle_create_order(PDO $pdo) {
 
         $pdo->commit();
 
-        json_response([
+        $response_data = [
             'success' => true,
             'message' => 'Order successfully placed!',
             'order_id' => $order_id,
             'order_number' => $order_number,
             'total_amount' => $total_amount,
             'estimated_minutes' => $estimated_minutes,
-            'dining_type' => $dining_type
-        ], 201);
+            'dining_type' => $dining_type,
+            'table_number' => $table_number
+        ];
+        if ($new_registered_user) {
+            $response_data['user'] = $new_registered_user;
+        }
+
+        json_response($response_data, 201);
 
     } catch (Exception $e) {
         $pdo->rollBack();

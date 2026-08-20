@@ -22,6 +22,7 @@ const CustomerApp = {
  currentUser: null,
  guestInfo: null,
  tables: [],
+ taxRatePercent: 6.0,
 
  async init() {
  this.loadCartFromStorage();
@@ -108,12 +109,9 @@ const CustomerApp = {
     } else {
       container.innerHTML = `
         <div style="display:flex; align-items:center; gap:0.5rem;">
-          <a href="login.php?tab=guest" class="btn btn-secondary btn-sm">
-            Guest Mode
-          </a>
-          <a href="login.php?tab=login" class="btn btn-primary btn-sm">
-            Sign In / Register
-          </a>
+          <button type="button" class="btn btn-primary btn-sm" onclick="CustomerApp.openAuthModal('register')" style="font-size:0.78rem; padding:0.4rem 0.85rem; font-weight:600;">
+            ✨ Register / Sign In
+          </button>
         </div>
       `;
     }
@@ -145,17 +143,36 @@ const CustomerApp = {
     SatayApp.openModal('profile-modal');
   },
 
-  openAuthModal(defaultTab = 'login') {
-    window.location.href = `login.php?tab=${defaultTab}&redirect=${encodeURIComponent(window.location.href)}`;
+  openAuthModal(defaultTab = 'register') {
+    const tabMap = {
+      'login': 'auth-login',
+      'register': 'auth-register',
+      'guest': 'auth-guest'
+    };
+    const tabId = tabMap[defaultTab] || defaultTab;
+    this.switchAuthTab(tabId);
+    SatayApp.openModal('customer-auth-modal');
   },
 
   switchAuthTab(tabId) {
-    document.querySelectorAll('.auth-tab-btn').forEach(b => {
+    document.querySelectorAll('#customer-auth-modal .auth-tab-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.tab === tabId);
     });
-    document.querySelectorAll('.auth-tab-pane').forEach(p => {
+    document.querySelectorAll('#customer-auth-modal .auth-tab-pane').forEach(p => {
       p.classList.toggle('active', p.id === tabId);
     });
+  },
+
+  toggleInputPassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.innerText = '🙈';
+    } else {
+      input.type = 'password';
+      btn.innerText = '👁️';
+    }
   },
 
   async fetchTables() {
@@ -203,7 +220,6 @@ const CustomerApp = {
       this.diningType = 'dine_in';
       this.populateTableDropdown();
       this.updateDiningModeUI();
-      this.renderTableBanner();
       setTimeout(() => {
         SatayApp.showToast(`🍽️ Welcome! Ordering for Table ${this.tableNumber}`, 'success');
       }, 400);
@@ -211,38 +227,6 @@ const CustomerApp = {
 
     if (track) {
       this.startLiveTracking(track);
-    }
-  },
-
-  renderTableBanner() {
-    const banner = document.getElementById('table-scanned-banner');
-    if (!banner) return;
-
-    if (this.tableNumber && this.diningType === 'dine_in') {
-      banner.style.display = 'block';
-      banner.innerHTML = `
-        <div style="background:linear-gradient(135deg, rgba(139, 69, 19, 0.15), rgba(212, 160, 23, 0.15)); border:1px solid rgba(212, 160, 23, 0.4); border-radius:var(--radius-md); padding:0.85rem 1.25rem; margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; animation:fadeIn 0.4s ease;">
-          <div style="display:flex; align-items:center; gap:0.75rem;">
-            <div style="font-size:1.5rem;">📍</div>
-            <div>
-              <div style="font-weight:800; font-size:1.05rem; color:var(--text-main);">
-                Dine-In Table: <span style="color:var(--primary);">${SatayApp.escapeHtml(this.tableNumber)}</span>
-              </div>
-              <div style="font-size:0.78rem; color:var(--text-muted);">
-                Table QR Scan Verified • Items will be served hot to your table
-              </div>
-            </div>
-          </div>
-          <div style="display:flex; gap:0.5rem;">
-            <button class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:0.25rem 0.6rem;" onclick="CustomerApp.openCartDrawer()">
-              🛒 View Cart
-            </button>
-          </div>
-        </div>
-      `;
-    } else {
-      banner.style.display = 'none';
-      banner.innerHTML = '';
     }
   },
 
@@ -458,21 +442,25 @@ const CustomerApp = {
  if (deliveryFields) deliveryFields.style.display = (this.diningType === 'delivery') ? 'block' : 'none';
  },
 
- async fetchMenu() {
- try {
- const res = await fetch('api/menu.php');
- const data = await res.json();
- if (data.success) {
- this.menuCategories = data.categories;
- this.menuItems = data.items;
- this.renderCategoryNav();
- this.renderMenuGrid();
- }
- } catch (err) {
- SatayApp.showToast('Failed to load menu items', 'danger');
- console.error(err);
- }
- },
+  async fetchMenu() {
+    try {
+      const res = await fetch('api/menu.php');
+      const data = await res.json();
+      if (data.success) {
+        this.menuCategories = data.categories || [];
+        this.menuItems = data.items || [];
+        if (data.tax_rate_percent !== undefined) {
+          this.taxRatePercent = parseFloat(data.tax_rate_percent);
+        }
+        this.renderCategoryNav();
+        this.renderMenuGrid();
+        this.updateCartSummary();
+      }
+    } catch (err) {
+      SatayApp.showToast('Failed to load menu items', 'danger');
+      console.error(err);
+    }
+  },
 
  renderCategoryNav() {
  const nav = document.getElementById('category-nav');
@@ -628,17 +616,6 @@ const CustomerApp = {
         </div>
       </div>
 
-      <!-- Spice Level -->
-      <div class="form-group">
-        <label class="form-label"> Spiciness Level / Kuah Kacang Pedas:</label>
-        <select class="form-select" id="customizer-spice">
-          <option value="normal" selected>Normal Pedas (Traditional standard)</option>
-          <option value="mild">Kurang Pedas / Mild (Kids friendly)</option>
-          <option value="pedas">Extra Pedas (Tambah Sambal Kicap Cili)</option>
-          <option value="extra_pedas"> Kaw Pedas Meletup</option>
-        </select>
-      </div>
-
       <!-- Condiments & Addons -->
       <div class="form-group">
         <label class="form-label">Condiments / Notes:</label>
@@ -711,27 +688,26 @@ const CustomerApp = {
       SatayApp.showToast(`Cannot add ${qty}. Only ${stock} left in stock!`, 'danger');
       return;
     }
- const spice = document.getElementById('customizer-spice')?.value || 'normal';
- const notes = document.getElementById('customizer-notes')?.value || '';
 
- // Add to cart
- this.cart.push({
- cart_id: Date.now() + Math.random().toString(36).substr(2, 4),
- menu_item_id: item.id,
- name: item.name,
- meat_type: item.stick_meat_type,
- unit_price: parseFloat(item.price_per_unit),
- quantity: qty,
- spicy_level: spice,
- special_notes: notes,
- unit_name: item.unit_name
- });
+    const notes = document.getElementById('customizer-notes')?.value || '';
 
- this.saveCartToStorage();
- this.updateCartSummary();
- SatayApp.closeModal('customizer-modal');
- SatayApp.showToast(`Added ${qty}x ${item.name} to cart!`, 'success');
- },
+    // Add to cart
+    this.cart.push({
+      cart_id: Date.now() + Math.random().toString(36).substr(2, 4),
+      menu_item_id: item.id,
+      name: item.name,
+      meat_type: item.stick_meat_type,
+      unit_price: parseFloat(item.price_per_unit),
+      quantity: qty,
+      special_notes: notes,
+      unit_name: item.unit_name
+    });
+
+    this.saveCartToStorage();
+    this.updateCartSummary();
+    SatayApp.closeModal('customizer-modal');
+    SatayApp.showToast(`Added ${qty}x ${item.name} to cart!`, 'success');
+  },
 
  removeFromCart(cartId) {
  this.cart = this.cart.filter(item => item.cart_id !== cartId);
@@ -793,188 +769,190 @@ const CustomerApp = {
  },
 
  renderCartDrawerItems() {
- const list = document.getElementById('cart-items-list');
- if (!list) return;
+    const list = document.getElementById('cart-items-list');
+    if (!list) return;
 
- if (this.cart.length === 0) {
- list.innerHTML = `
- <div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">
- <div style="font-size:2.5rem; margin-bottom:0.75rem;"></div>
- <h4>Your cart is empty</h4>
- <p style="font-size:0.85rem;">Select your favorite satay skewers to start ordering!</p>
- </div>
- `;
- return;
- }
+    if (this.cart.length === 0) {
+      list.innerHTML = `
+        <div style="text-align:center; padding:3rem 1rem; color:var(--text-muted);">
+          <div style="font-size:2.5rem; margin-bottom:0.75rem;"></div>
+          <h4>Your cart is empty</h4>
+          <p style="font-size:0.85rem;">Select your favorite satay skewers to start ordering!</p>
+        </div>
+      `;
+      return;
+    }
 
- list.innerHTML = this.cart.map(it => `
- <div class="cart-item">
- <div class="cart-item-info" style="flex-grow:1;">
- <h4>${it.name}</h4>
- <div class="cart-item-meta">
- ${SatayApp.formatPrice(it.unit_price)} each 
- ${it.spicy_level !== 'normal' ? `• <span style="color:var(--primary);">${it.spicy_level}</span>` : ''}
- </div>
- ${it.special_notes ? `<div style="font-size:0.75rem; color:var(--gold); margin-top:2px;"> ${it.special_notes}</div>` : ''}
- <div style="font-weight:700; color:var(--gold); margin-top:4px;">
- ${SatayApp.formatPrice(it.unit_price * it.quantity)}
- </div>
- </div>
- <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
- <div class="qty-stepper">
- <button type="button" class="qty-btn" onclick="CustomerApp.adjustCartItemQty('${it.cart_id}', -1)">-</button>
- <div class="qty-val">${it.quantity}</div>
- <button type="button" class="qty-btn" onclick="CustomerApp.adjustCartItemQty('${it.cart_id}', 1)">+</button>
- </div>
- <button class="btn btn-sm btn-secondary" style="font-size:0.75rem; padding:2px 6px;" onclick="CustomerApp.removeFromCart('${it.cart_id}')">Remove</button>
- </div>
- </div>
- `).join('');
- },
+    list.innerHTML = this.cart.map(it => `
+      <div class="cart-item">
+        <div class="cart-item-info" style="flex-grow:1;">
+          <h4>${it.name}</h4>
+          <div class="cart-item-meta">
+            ${SatayApp.formatPrice(it.unit_price)} each
+          </div>
+          ${it.special_notes ? `<div style="font-size:0.75rem; color:var(--gold); margin-top:2px;"> ${it.special_notes}</div>` : ''}
+          <div style="font-weight:700; color:var(--gold); margin-top:4px;">
+            ${SatayApp.formatPrice(it.unit_price * it.quantity)}
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          <div class="qty-stepper">
+            <button type="button" class="qty-btn" onclick="CustomerApp.adjustCartItemQty('${it.cart_id}', -1)">-</button>
+            <div class="qty-val">${it.quantity}</div>
+            <button type="button" class="qty-btn" onclick="CustomerApp.adjustCartItemQty('${it.cart_id}', 1)">+</button>
+          </div>
+          <button class="btn btn-sm btn-secondary" style="font-size:0.75rem; padding:2px 6px;" onclick="CustomerApp.removeFromCart('${it.cart_id}')">Remove</button>
+        </div>
+      </div>
+    `).join('');
+  },
 
- updateCartSummary() {
- let subtotal = 0;
- let stickCount = 0;
+  updateCartSummary() {
+    let subtotal = 0;
+    let stickCount = 0;
 
- this.cart.forEach(it => {
- subtotal += (it.unit_price * it.quantity);
- if (it.meat_type) {
- if (it.meat_type.includes('combo_30')) stickCount += (30 * it.quantity);
- else if (it.meat_type.includes('combo_50')) stickCount += (50 * it.quantity);
- else if (it.meat_type.includes('combo_15')) stickCount += (15 * it.quantity);
- else stickCount += it.quantity;
- }
- });
+    this.cart.forEach(it => {
+      subtotal += (it.unit_price * it.quantity);
+      if (it.meat_type) {
+        if (it.meat_type.includes('combo_30')) stickCount += (30 * it.quantity);
+        else if (it.meat_type.includes('combo_50')) stickCount += (50 * it.quantity);
+        else if (it.meat_type.includes('combo_15')) stickCount += (15 * it.quantity);
+        else stickCount += it.quantity;
+      }
+    });
 
- const taxRate = 0.06;
- const tax = subtotal * taxRate;
- const deliveryFee = (this.diningType === 'delivery' && subtotal > 0) ? 5.00 : 0.00;
- const total = subtotal + tax + deliveryFee;
+    const taxPercent = (this.taxRatePercent !== undefined && !isNaN(this.taxRatePercent)) ? this.taxRatePercent : 6.0;
+    const taxRate = taxPercent / 100;
+    const tax = subtotal * taxRate;
+    const deliveryFee = (this.diningType === 'delivery' && subtotal > 0) ? 5.00 : 0.00;
+    const total = subtotal + tax + deliveryFee;
 
- // Update floating bubble
- const bubble = document.getElementById('cart-bubble-count');
- const floatPrice = document.getElementById('floating-cart-total');
- if (bubble) bubble.innerText = this.cart.length;
- if (floatPrice) floatPrice.innerText = SatayApp.formatPrice(total);
+    // Update floating bubble
+    const bubble = document.getElementById('cart-bubble-count');
+    const floatPrice = document.getElementById('floating-cart-total');
+    if (bubble) bubble.innerText = this.cart.length;
+    if (floatPrice) floatPrice.innerText = SatayApp.formatPrice(total);
 
- // Update drawer summary
- const subtotalEl = document.getElementById('cart-subtotal');
- const taxEl = document.getElementById('cart-tax');
- const deliveryEl = document.getElementById('cart-delivery-fee');
- const totalEl = document.getElementById('cart-total');
- const stickEl = document.getElementById('cart-stick-count');
+    // Update drawer summary
+    const subtotalEl = document.getElementById('cart-subtotal');
+    const taxEl = document.getElementById('cart-tax');
+    const taxLabelEl = document.getElementById('cart-tax-label');
+    const deliveryEl = document.getElementById('cart-delivery-fee');
+    const totalEl = document.getElementById('cart-total');
+    const stickEl = document.getElementById('cart-stick-count');
 
- if (subtotalEl) subtotalEl.innerText = SatayApp.formatPrice(subtotal);
- if (taxEl) taxEl.innerText = SatayApp.formatPrice(tax);
- if (deliveryEl) deliveryEl.innerText = SatayApp.formatPrice(deliveryFee);
- if (totalEl) totalEl.innerText = SatayApp.formatPrice(total);
- if (stickEl) stickEl.innerText = `${stickCount} Sticks`;
- },
+    if (subtotalEl) subtotalEl.innerText = SatayApp.formatPrice(subtotal);
+    if (taxLabelEl) taxLabelEl.innerText = `SST (${taxPercent}%):`;
+    if (taxEl) taxEl.innerText = SatayApp.formatPrice(tax);
+    if (deliveryEl) deliveryEl.innerText = SatayApp.formatPrice(deliveryFee);
+    if (totalEl) totalEl.innerText = SatayApp.formatPrice(total);
+    if (stickEl) stickEl.innerText = `${stickCount} Sticks`;
+  },
 
- proceedToCheckout() {
- if (this.cart.length === 0) {
- SatayApp.showToast('Your cart is empty! Please add some satay first.', 'warning');
- return;
- }
+  proceedToCheckout() {
+    if (this.cart.length === 0) {
+      SatayApp.showToast('Your cart is empty! Please add some satay first.', 'warning');
+      return;
+    }
 
- // Auto pre-populate checkout fields from current session
- const nameInput = document.getElementById('checkout-name');
- const phoneInput = document.getElementById('checkout-phone');
- const addressInput = document.getElementById('checkout-address');
+    // Auto pre-populate checkout fields from current session
+    const nameInput = document.getElementById('checkout-name');
+    const phoneInput = document.getElementById('checkout-phone');
+    const addressInput = document.getElementById('checkout-address');
 
- if (this.currentUser) {
- if (nameInput && !nameInput.value) nameInput.value = this.currentUser.full_name || '';
- if (phoneInput && !phoneInput.value) phoneInput.value = this.currentUser.phone || '';
- if (addressInput && !addressInput.value) addressInput.value = this.currentUser.address || '';
- } else if (this.guestInfo) {
- if (nameInput && !nameInput.value) nameInput.value = this.guestInfo.name || '';
- if (phoneInput && !phoneInput.value) phoneInput.value = this.guestInfo.phone || '';
- }
+    if (this.currentUser) {
+      if (nameInput && !nameInput.value) nameInput.value = this.currentUser.full_name || '';
+      if (phoneInput && !phoneInput.value) phoneInput.value = this.currentUser.phone || '';
+      if (addressInput && !addressInput.value) addressInput.value = this.currentUser.address || '';
+    } else if (this.guestInfo) {
+      if (nameInput && !nameInput.value) nameInput.value = this.guestInfo.name || (this.tableNumber ? `Guest Table ${this.tableNumber}` : 'Guest Customer');
+      if (phoneInput && !phoneInput.value) phoneInput.value = this.guestInfo.phone || '';
+    }
 
- this.populateTableDropdown();
- this.closeCartDrawer();
- this.updateDiningModeUI();
- SatayApp.openModal('checkout-modal');
- },
+    this.populateTableDropdown();
+    this.closeCartDrawer();
+    this.updateDiningModeUI();
+    SatayApp.openModal('checkout-modal');
+  },
 
- async processCheckout() {
- const name = document.getElementById('checkout-name')?.value.trim() || (this.currentUser ? this.currentUser.full_name : 'Guest');
- const phone = document.getElementById('checkout-phone')?.value.trim() || '';
- const table = document.getElementById('checkout-table')?.value.trim() || this.tableNumber;
- const address = document.getElementById('checkout-address')?.value.trim() || '';
- const notes = document.getElementById('checkout-order-notes')?.value.trim() || '';
- const payment = document.getElementById('checkout-payment')?.value || 'cash';
+  async processCheckout() {
+    const name = document.getElementById('checkout-name')?.value.trim() || (this.currentUser ? this.currentUser.full_name : (this.tableNumber ? `Guest Table ${this.tableNumber}` : 'Guest'));
+    const phone = document.getElementById('checkout-phone')?.value.trim() || '';
+    const table = document.getElementById('checkout-table')?.value.trim() || this.tableNumber;
+    const address = document.getElementById('checkout-address')?.value.trim() || '';
+    const notes = document.getElementById('checkout-order-notes')?.value.trim() || '';
+    const payment = document.getElementById('checkout-payment')?.value || 'cash';
 
- if (this.diningType === 'dine_in' && !table) {
- SatayApp.showToast('Please choose your Dining Table from the dropdown.', 'danger');
- return;
- }
+    if (this.diningType === 'dine_in' && !table) {
+      SatayApp.showToast('Please choose your Dining Table from the dropdown.', 'danger');
+      return;
+    }
 
- if (this.diningType === 'delivery' && !address) {
- SatayApp.showToast('Please enter your delivery address.', 'danger');
- return;
- }
+    if (this.diningType === 'delivery' && !address) {
+      SatayApp.showToast('Please enter your delivery address.', 'danger');
+      return;
+    }
 
- const payload = {
- customer_name: name,
- customer_phone: phone,
- dining_type: this.diningType,
- table_number: table,
- delivery_address: address,
- notes: notes,
- payment_method: payment,
- items: this.cart.map(it => ({
- menu_item_id: it.menu_item_id,
- item_name: it.name,
- unit_price: it.unit_price,
- quantity: it.quantity,
- spicy_level: it.spicy_level,
- special_notes: it.special_notes
- }))
- };
+    const payload = {
+      customer_name: name,
+      customer_phone: phone,
+      dining_type: this.diningType,
+      table_number: table,
+      delivery_address: address,
+      notes: notes,
+      payment_method: payment,
+      items: this.cart.map(it => ({
+        menu_item_id: it.menu_item_id,
+        item_name: it.name,
+        unit_price: it.unit_price,
+        quantity: it.quantity,
+        spicy_level: 'normal',
+        special_notes: it.special_notes
+      }))
+    };
 
- const submitBtn = document.getElementById('btn-submit-order');
- if (submitBtn) {
- submitBtn.disabled = true;
- submitBtn.innerText = 'Submitting Order...';
- }
+    const submitBtn = document.getElementById('btn-submit-order');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = 'Submitting Order...';
+    }
 
- try {
- const res = await fetch('api/orders.php', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify(payload)
- });
+    try {
+      const res = await fetch('api/orders.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
- const data = await res.json();
- if (data.success) {
- // Clear cart
- this.cart = [];
- this.saveCartToStorage();
- this.updateCartSummary();
+      const data = await res.json();
+      if (data.success) {
+        // Clear cart
+        this.cart = [];
+        this.saveCartToStorage();
+        this.updateCartSummary();
 
- // Save to customer local history
- this.saveOrderToHistory(data.order_number);
+        // Save to customer local history
+        this.saveOrderToHistory(data.order_number);
 
- SatayApp.closeModal('checkout-modal');
- SatayApp.showToast(' Order placed successfully!', 'success');
- SatayApp.playChime('new_order');
+        SatayApp.closeModal('checkout-modal');
+        SatayApp.showToast('🎉 Order placed successfully!', 'success');
+        SatayApp.playChime('new_order');
 
- // Switch to live tracking
- this.startLiveTracking(data.order_number);
- } else {
- SatayApp.showToast(data.message || 'Order failed', 'danger');
- }
- } catch (err) {
- console.error(err);
- SatayApp.showToast('Network error submitting order', 'danger');
- } finally {
- if (submitBtn) {
- submitBtn.disabled = false;
- submitBtn.innerText = 'Confirm & Place Order ';
- }
- }
- },
+        // Switch to live tracking
+        this.startLiveTracking(data.order_number);
+      } else {
+        SatayApp.showToast(data.message || 'Order failed', 'danger');
+      }
+    } catch (err) {
+      console.error(err);
+      SatayApp.showToast('Network error submitting order', 'danger');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Confirm & Place Order';
+      }
+    }
+  },
 
  saveOrderToHistory(orderNumber) {
  try {
@@ -1098,7 +1076,6 @@ const CustomerApp = {
       <div style="display:flex; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid var(--border-color); font-size:0.88rem;">
         <div>
           <strong>${it.quantity}x</strong> ${SatayApp.escapeHtml(it.item_name)}
-          ${it.spicy_level && it.spicy_level !== 'normal' ? `<span style="font-size:0.75rem; color:var(--primary);">(${it.spicy_level})</span>` : ''}
         </div>
         <div style="font-weight:700; color:var(--gold);">${SatayApp.formatPrice(it.total_price)}</div>
       </div>
@@ -1157,6 +1134,17 @@ const CustomerApp = {
           <span style="color:var(--gold);">${SatayApp.formatPrice(order.total_amount)}</span>
         </div>
       </div>
+
+      ${!this.currentUser ? `
+        <!-- Optional Post-Order Account Creation Card for Guests -->
+        <div style="background:linear-gradient(135deg, rgba(139, 69, 19, 0.08), rgba(212, 160, 23, 0.12)); border:1px dashed var(--gold); border-radius:var(--radius-md); padding:1rem 1.25rem; margin-bottom:1.5rem; text-align:center; animation:fadeIn 0.3s ease;">
+          <div style="font-weight:700; font-size:0.92rem; color:var(--text-main); margin-bottom:0.25rem;">✨ Want to save your order history?</div>
+          <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4; margin-bottom:0.65rem;">Create a free account in 20 seconds to easily access your receipts, save favorite satay items, and re-order with 1 tap.</p>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="CustomerApp.openAuthModal('register')" style="border-color:var(--gold); color:var(--primary); font-weight:600; font-size:0.8rem; padding:0.35rem 0.9rem;">
+            ✨ Create Free Account (Optional)
+          </button>
+        </div>
+      ` : ''}
 
       <!-- Action Buttons -->
       <div style="display:flex; gap:0.75rem; justify-content:center;">
