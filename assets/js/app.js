@@ -237,6 +237,12 @@ const SatayApp = {
   },
 
   toggleSideNav() {
+    const storeSidebar = document.getElementById('store-sidebar');
+    if (window.innerWidth >= 1024 && storeSidebar) {
+      document.body.classList.toggle('sidebar-closed');
+      return;
+    }
+
     const sideNav = document.getElementById('app-side-nav');
     if (sideNav && sideNav.classList.contains('open')) {
       this.closeSideNav();

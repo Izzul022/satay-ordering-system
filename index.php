@@ -136,15 +136,6 @@ if (!$currentUser) {
 
     <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
     <aside class="store-sidebar" id="store-sidebar">
-        <!-- Brand Header -->
-        <div class="store-sb-header">
-            <div class="store-sb-logo">S</div>
-            <div class="store-sb-brand-text">
-                <h2>SATE TULANG MADU</h2>
-                <span>Charcoal Grilled Skewers</span>
-            </div>
-        </div>
-
         <!-- User Card -->
         <?php if ($currentUser): ?>
             <div class="store-sb-user">

@@ -79,16 +79,6 @@ $currentUser = get_current_auth_user();
                 <span class="sidenav-link-icon">⚙️</span>
                 <span>Store & Domain Settings</span>
             </button>
-
-            <div class="sidenav-section-title">Quick Portals</div>
-            <a href="kitchen.php" class="sidenav-link">
-                <span class="sidenav-link-icon">🍳</span>
-                <span>Kitchen Display (KDS)</span>
-            </a>
-            <a href="index.php" class="sidenav-link">
-                <span class="sidenav-link-icon">🛒</span>
-                <span>Customer Ordering View</span>
-            </a>
         </nav>
 
         <div class="sidenav-footer">
@@ -100,15 +90,6 @@ $currentUser = get_current_auth_user();
 
     <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
     <aside class="store-sidebar" id="store-sidebar">
-        <!-- Brand Header -->
-        <div class="store-sb-header">
-            <div class="store-sb-logo" style="background:var(--info);">A</div>
-            <div class="store-sb-brand-text">
-                <h2>ADMIN CONTROL</h2>
-                <span>Sate Tulang Madu Center</span>
-            </div>
-        </div>
-
         <!-- Admin User Card -->
         <div class="store-sb-user">
             <div class="store-sb-avatar" style="background:var(--info);"><?php echo strtoupper(substr($currentUser['full_name'] ?? 'Admin', 0, 1)); ?></div>
@@ -171,11 +152,6 @@ $currentUser = get_current_auth_user();
                     <h1>ADMIN CONTROL CENTER</h1>
                     <p>Sate Tulang Madu Management</p>
                 </div>
-            </div>
-
-            <!-- Active View Status Badge -->
-            <div class="store-topbar-dining-badge" style="background:var(--info-light); color:var(--info); border-color:rgba(59, 111, 160, 0.25);">
-                👑 <span id="topbar-admin-title">Executive Overview</span>
             </div>
 
             <div class="store-topbar-actions" style="margin-left:auto;">

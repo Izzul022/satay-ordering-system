@@ -97,17 +97,6 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
 
     <!-- ========== DESKTOP PERSISTENT SIDEBAR (Microsoft Store Layout) ========== -->
     <aside class="store-sidebar" id="store-sidebar">
-        <!-- Brand Header -->
-        <div class="store-sb-header">
-            <div class="store-sb-logo" style="background:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>;">
-                <?php echo $isDrinksStaff ? '🥤' : 'K'; ?>
-            </div>
-            <div class="store-sb-brand-text">
-                <h2><?php echo $isDrinksStaff ? 'DRINK BAR KDS' : 'KITCHEN & POS'; ?></h2>
-                <span>Sate Tulang Madu Ops</span>
-            </div>
-        </div>
-
         <!-- Staff User Card -->
         <div class="store-sb-user">
             <div class="store-sb-avatar" style="background:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>;">
@@ -176,11 +165,6 @@ $isDrinksStaff = ($currentUser['role'] === 'staff_drinks' || strpos(strtolower($
                     <h1><?php echo $isDrinksStaff ? 'DRINK BAR STATION & KDS' : 'KITCHEN DISPLAY & POS'; ?></h1>
                     <p><?php echo $isDrinksStaff ? 'Real-Time Beverage Orders Queue' : 'Sate Tulang Madu Kitchen Ops'; ?></p>
                 </div>
-            </div>
-
-            <!-- Active Station Title Badge -->
-            <div class="store-topbar-dining-badge" style="background:<?php echo $isDrinksStaff ? 'var(--info-light)' : 'var(--gold-light)'; ?>; color:<?php echo $isDrinksStaff ? 'var(--info)' : 'var(--gold)'; ?>; border-color:rgba(155, 106, 47, 0.25);">
-                <?php echo $isDrinksStaff ? '🥤' : '🍳'; ?> <span id="topbar-kitchen-title"><?php echo $isDrinksStaff ? 'Drink Station Queue' : 'Kitchen Orders Display (KDS)'; ?></span>
             </div>
 
             <div class="store-topbar-actions" style="margin-left:auto;">

@@ -2974,54 +2974,12 @@ button, input, select, textarea {
 
 /* ---- Sidebar Internals ---- */
 .store-sb-header {
-  padding: 1.15rem 1.25rem;
-  border-bottom: 1px solid rgba(224, 214, 204, 0.5);
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.store-sb-logo {
-  width: 36px;
-  height: 36px;
-  background: var(--primary);
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-heading);
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: #fff;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(139, 69, 19, 0.25);
-}
-
-.store-sb-brand-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.store-sb-brand-text h2 {
-  font-size: 0.88rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.store-sb-brand-text span {
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  font-family: var(--font-body);
-  font-weight: 400;
+  display: none; /* Removed to eliminate duplicate header; brand header is in topbar */
 }
 
 /* Sidebar User Card */
 .store-sb-user {
-  padding: 0.85rem 1.25rem;
+  padding: 1rem 1.25rem;
   background: linear-gradient(135deg, rgba(139, 69, 19, 0.05) 0%, rgba(155, 106, 47, 0.08) 100%);
   border-bottom: 1px solid rgba(224, 214, 204, 0.5);
   display: flex;
@@ -3194,7 +3152,7 @@ button, input, select, textarea {
 }
 
 /* ==========================================================================
-   DESKTOP LAYOUT (≥1024px) — 2-COLUMN APP SHELL
+   DESKTOP LAYOUT (≥1024px) — 2-COLUMN APP SHELL WITH TOGGLEABLE SIDEBAR
    ========================================================================== */
 @media (min-width: 1024px) {
   /* Show persistent sidebar */
@@ -3206,31 +3164,41 @@ button, input, select, textarea {
     left: 0;
     width: 260px;
     height: 100vh;
-    background: rgba(250, 248, 245, 0.82);
+    background: rgba(250, 248, 245, 0.88);
     backdrop-filter: blur(24px) saturate(1.5);
     -webkit-backdrop-filter: blur(24px) saturate(1.5);
     border-right: 1px solid var(--border-color);
     z-index: 1050;
     overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Push canvas to the right */
   .store-canvas {
     margin-left: 260px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Hide the hamburger button on desktop */
+  /* Collapsed state when hamburger toggle button is clicked */
+  body.sidebar-closed .store-sidebar {
+    transform: translateX(-100%);
+  }
+
+  body.sidebar-closed .store-canvas {
+    margin-left: 0 !important;
+  }
+
+  /* Ensure hamburger toggle button is ALWAYS visible on desktop so users can open or close sidebar */
   .store-topbar .nav-opener-btn {
-    display: none;
+    display: inline-flex;
   }
 
-  /* Hide brand text in topbar on desktop (brand is in sidebar) */
   .store-topbar-brand .brand-text {
-    display: none;
+    display: block;
   }
 
   .store-topbar-brand .nav-logo-icon {
-    display: none;
+    display: flex;
   }
 
   /* Show dining badge in topbar */
@@ -3252,12 +3220,6 @@ button, input, select, textarea {
   /* Hero adjustments for wider canvas */
   .store-hero h2 {
     font-size: 2.15rem;
-  }
-
-  /* Hide mobile-only sidenav opener */
-  .app-sidenav-backdrop,
-  .app-sidenav {
-    /* Keep existing mobile drawer hidden on desktop — sidebar replaces it */
   }
 }
 
