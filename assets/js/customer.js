@@ -1359,9 +1359,9 @@ const CustomerApp = {
  if (!this.currentUser) {
  guestBanner = `
  <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.25); border-radius:var(--radius-md); padding:0.75rem 1rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
- <span style="font-size:0.8rem; color:#fde68a;">
- <strong>Ordering as Guest?</strong> Sign in to sync your orders across all devices.
- </span>
+      <span style="font-size:0.8rem; color:var(--text-main);">
+        <strong>Ordering as Guest?</strong> Sign in to sync your orders across all devices.
+      </span>
  <button class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:3px 8px;" onclick="SatayApp.closeModal('history-modal'); CustomerApp.openAuthModal('login');">
  Sign In →
  </button>
