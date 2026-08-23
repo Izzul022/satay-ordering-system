@@ -14,7 +14,8 @@ const CustomerApp = {
  menuItems: [],
  activeCategory: 'all',
  searchQuery: '',
- diningType: 'dine_in', // dine_in, takeaway
+ diningType: 'takeaway', // dine_in, takeaway (default takeaway unless QR scan)
+ isQrAccess: false,
  tableNumber: '',
  cart: [],
  activeTrackingOrderNumber: null,
@@ -216,6 +217,7 @@ const CustomerApp = {
     const track = urlParams.get('track');
 
     if (table) {
+      this.isQrAccess = true;
       this.tableNumber = table.trim();
       this.diningType = 'dine_in';
       this.populateTableDropdown();
@@ -224,6 +226,12 @@ const CustomerApp = {
       setTimeout(() => {
         SatayApp.showToast(`🍽️ Welcome! Ordering for Table ${this.tableNumber}`, 'success');
       }, 400);
+    } else {
+      this.isQrAccess = false;
+      this.tableNumber = '';
+      this.diningType = 'takeaway';
+      this.updateDiningModeUI();
+      this.updateStoreLayoutUI();
     }
 
     if (track) {
@@ -236,7 +244,7 @@ const CustomerApp = {
     // Sidebar table chip
     const tableChip = document.getElementById('store-sb-table-chip');
     const tableLabel = document.getElementById('store-sb-table-label');
-    if (tableChip && this.tableNumber) {
+    if (tableChip && this.tableNumber && this.isQrAccess) {
       tableChip.style.display = 'flex';
       if (tableLabel) tableLabel.textContent = `Table ${this.tableNumber}`;
     } else if (tableChip) {
@@ -246,20 +254,19 @@ const CustomerApp = {
     // Topbar dining badge
     const topbarBadge = document.getElementById('topbar-dining-label');
     if (topbarBadge) {
-      if (this.tableNumber && this.diningType === 'dine_in') {
+      if (this.tableNumber && this.diningType === 'dine_in' && this.isQrAccess) {
         topbarBadge.textContent = `Table ${this.tableNumber} (Dine-In)`;
-      } else if (this.diningType === 'takeaway') {
-        topbarBadge.textContent = 'Takeaway (Bungkus)';
       } else {
-        topbarBadge.textContent = 'Dine-In';
+        topbarBadge.textContent = 'Takeaway (Bungkus)';
       }
     }
 
     // Update topbar badge emoji
     const topbarBadgeWrap = document.getElementById('store-topbar-dining-badge');
     if (topbarBadgeWrap) {
-      const emoji = this.diningType === 'takeaway' ? '🥡' : '🍽️';
-      topbarBadgeWrap.innerHTML = `${emoji} <span id="topbar-dining-label">${topbarBadge ? topbarBadge.textContent : ''}</span>`;
+      const emoji = (this.diningType === 'dine_in' && this.isQrAccess) ? '🍽️' : '🥡';
+      const labelText = (this.diningType === 'dine_in' && this.isQrAccess) ? `Table ${this.tableNumber} (Dine-In)` : 'Takeaway (Bungkus)';
+      topbarBadgeWrap.innerHTML = `${emoji} <span id="topbar-dining-label">${labelText}</span>`;
     }
   },
 
@@ -471,15 +478,22 @@ const CustomerApp = {
  }
  },
 
- setDiningMode(mode) {
- this.diningType = mode;
- this.updateDiningModeUI();
- this.updateStoreLayoutUI();
- this.updateCartSummary();
- },
+  setDiningMode(mode) {
+    if (mode === 'dine_in' && !this.isQrAccess) {
+      SatayApp.showToast('🍽️ Dine-In is only available by scanning a Table QR code at the restaurant.', 'warning');
+      this.diningType = 'takeaway';
+      this.updateDiningModeUI();
+      this.updateStoreLayoutUI();
+      return;
+    }
+    this.diningType = mode;
+    this.updateDiningModeUI();
+    this.updateStoreLayoutUI();
+    this.updateCartSummary();
+  },
 
- updateDiningModeUI() {
-    // Hero mode buttons
+  updateDiningModeUI() {
+    // Mode buttons
     document.querySelectorAll('.mode-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.mode === this.diningType);
     });
@@ -489,8 +503,19 @@ const CustomerApp = {
       btn.classList.toggle('active', btn.dataset.mode === this.diningType);
     });
 
+    // Toggle visibility of Dine-In options based on QR scan access
+    const dineInSidenav = document.getElementById('sidenav-dinein-opt');
+    const sbDineInBtn = document.getElementById('sb-dinein-btn');
+
+    if (dineInSidenav) {
+      dineInSidenav.style.display = this.isQrAccess ? 'flex' : 'none';
+    }
+    if (sbDineInBtn) {
+      sbDineInBtn.style.display = this.isQrAccess ? 'inline-flex' : 'none';
+    }
+
     const dineInFields = document.getElementById('dine-in-fields');
-    if (dineInFields) dineInFields.style.display = (this.diningType === 'dine_in') ? 'block' : 'none';
+    if (dineInFields) dineInFields.style.display = (this.diningType === 'dine_in' && this.isQrAccess) ? 'block' : 'none';
   },
 
   async fetchMenu() {
@@ -1013,6 +1038,10 @@ const CustomerApp = {
   },
 
   async processCheckout() {
+    if (!this.isQrAccess) {
+      this.diningType = 'takeaway';
+    }
+
     const name = document.getElementById('checkout-name')?.value.trim() || (this.currentUser ? this.currentUser.full_name : (this.tableNumber ? `Guest Table ${this.tableNumber}` : 'Guest'));
     const phone = document.getElementById('checkout-phone')?.value.trim() || '';
     const table = document.getElementById('checkout-table')?.value.trim() || this.tableNumber;

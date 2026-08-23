@@ -94,14 +94,14 @@ if (!$currentUser) {
                 <span>My Orders & History</span>
             </button>
 
-            <div class="sidenav-section-title">Dining Modes</div>
-            <button type="button" class="sidenav-link"
-                onclick="SatayApp.closeSideNav(); document.querySelector('.mode-btn[data-mode=dine_in]')?.click()">
+            <div class="sidenav-section-title" id="sidenav-dining-title">Dining Modes</div>
+            <button type="button" class="sidenav-link mode-btn" data-mode="dine_in" id="sidenav-dinein-opt"
+                onclick="SatayApp.closeSideNav(); CustomerApp.setDiningMode('dine_in')">
                 <span class="sidenav-link-icon">🍽️</span>
                 <span>Dine-In (Table Service)</span>
             </button>
-            <button type="button" class="sidenav-link"
-                onclick="SatayApp.closeSideNav(); document.querySelector('.mode-btn[data-mode=takeaway]')?.click()">
+            <button type="button" class="sidenav-link mode-btn" data-mode="takeaway" id="sidenav-takeaway-opt"
+                onclick="SatayApp.closeSideNav(); CustomerApp.setDiningMode('takeaway')">
                 <span class="sidenav-link-icon">🥡</span>
                 <span>Takeaway (Bungkus)</span>
             </button>
@@ -183,11 +183,11 @@ if (!$currentUser) {
         <!-- Sidebar Navigation -->
         <nav class="store-sb-nav" id="store-sb-nav">
             <!-- Dining Mode Segment -->
-            <div class="store-sb-section">Dining Mode</div>
-            <div class="store-sb-dining-segment">
-                <button type="button" class="store-sb-dining-btn active" data-mode="dine_in"
+            <div class="store-sb-section" id="store-sb-dining-title">Dining Mode</div>
+            <div class="store-sb-dining-segment" id="store-sb-dining-segment">
+                <button type="button" class="store-sb-dining-btn" data-mode="dine_in" id="sb-dinein-btn"
                     onclick="CustomerApp.setDiningMode('dine_in')">🍽️ Dine-In</button>
-                <button type="button" class="store-sb-dining-btn" data-mode="takeaway"
+                <button type="button" class="store-sb-dining-btn active" data-mode="takeaway" id="sb-takeaway-btn"
                     onclick="CustomerApp.setDiningMode('takeaway')">🥡 Takeaway</button>
             </div>
 
