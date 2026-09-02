@@ -373,15 +373,39 @@ const CustomerApp = {
  const regForm = document.getElementById('customer-register-form');
  if (regForm) {
  regForm.addEventListener('submit', async (e) => {
- e.preventDefault();
- const full_name = document.getElementById('reg-fullname')?.value.trim();
- const username = document.getElementById('reg-username')?.value.trim();
- const phone = document.getElementById('reg-phone')?.value.trim();
- const email = document.getElementById('reg-email')?.value.trim();
- const address = document.getElementById('reg-address')?.value.trim();
- const password = document.getElementById('reg-password')?.value.trim();
- const errDiv = document.getElementById('cust-reg-error');
- const btn = document.getElementById('btn-cust-register');
+    e.preventDefault();
+    const full_name = document.getElementById('reg-fullname')?.value.trim();
+    const username = document.getElementById('reg-username')?.value.trim();
+    const phone = document.getElementById('reg-phone')?.value.trim();
+    const email = document.getElementById('reg-email')?.value.trim();
+    const address = document.getElementById('reg-address')?.value.trim();
+    const password = document.getElementById('reg-password')?.value.trim();
+    const errDiv = document.getElementById('cust-reg-error');
+    const btn = document.getElementById('btn-cust-register');
+
+    const showError = (msg) => {
+      if (errDiv) {
+        errDiv.innerHTML = `<div style="background:rgba(220, 53, 69, 0.15); border:1px solid var(--danger); padding:0.65rem 0.85rem; border-radius:var(--radius-md); font-weight:600; color:var(--danger); text-align:center;">⚠️ ${SatayApp.escapeHtml(msg)}</div>`;
+        errDiv.style.display = 'block';
+      }
+      SatayApp.showToast(msg, 'danger');
+    };
+
+    if (!full_name) {
+      showError('Please enter your Full Name.');
+      document.getElementById('reg-fullname')?.focus();
+      return;
+    }
+    if (!username) {
+      showError('Please choose a Username.');
+      document.getElementById('reg-username')?.focus();
+      return;
+    }
+    if (!password || password.length < 4) {
+      showError('Please create a Password (min. 4 characters).');
+      document.getElementById('reg-password')?.focus();
+      return;
+    }
 
     if (errDiv) errDiv.style.display = 'none';
     if (btn) { btn.disabled = true; btn.innerText = 'Creating Account...'; }
@@ -399,7 +423,7 @@ const CustomerApp = {
         this.guestInfo = null;
         SatayApp.closeModal('customer-auth-modal');
         this.renderHeaderAuthUI();
-        SatayApp.showToast(`🎉 Welcome to Sate Tulang Madu, ${data.user.full_name}! Account created & orders saved.`, 'success');
+        SatayApp.showToast(`🎉 Account created! Welcome, ${data.user.full_name}!`, 'success');
 
         const activeOrder = this.activeTrackingOrderNumber;
         if (activeOrder) {
@@ -410,18 +434,12 @@ const CustomerApp = {
           }, 500);
         }
       } else {
-        if (errDiv) {
-          errDiv.innerText = data.message || 'Registration failed';
-          errDiv.style.display = 'block';
-        }
+        showError(data.message || 'Registration failed');
       }
     } catch (err) {
-      if (errDiv) {
-        errDiv.innerText = 'Network error during registration';
-        errDiv.style.display = 'block';
-      }
+      showError('Network error during registration');
     } finally {
-      if (btn) { btn.disabled = false; btn.innerText = 'Create Account & Start Ordering '; }
+      if (btn) { btn.disabled = false; btn.innerText = 'Create Account & Start Ordering'; }
     }
  });
  }
