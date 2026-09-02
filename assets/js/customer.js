@@ -154,6 +154,8 @@ const CustomerApp = {
     };
     const tabId = tabMap[defaultTab] || defaultTab;
     this.switchAuthTab(tabId);
+    SatayApp.closeModal('tracker-modal');
+    SatayApp.closeModal('history-modal');
     SatayApp.openModal('customer-auth-modal');
   },
 

@@ -3727,4 +3727,9 @@ body.store-layout-active #category-nav.category-nav {
   color: #ffffff;
 }
 
+/* Ensure Customer Auth/Registration modal displays in front of tracker modal */
+#customer-auth-modal {
+  z-index: 100050 !important;
+}
+
 
