@@ -327,12 +327,12 @@ if (!in_array($activeTab, ['login', 'register', 'guest'])) {
                 e.preventDefault();
                 this.clearError();
 
-                const fullName = document.getElementById('reg-fullname').value.trim();
-                const username = document.getElementById('reg-username').value.trim();
-                const phone = document.getElementById('reg-phone').value.trim();
-                const email = document.getElementById('reg-email').value.trim();
-                const address = document.getElementById('reg-address').value.trim();
-                const password = document.getElementById('reg-password').value.trim();
+                const fullName = document.getElementById('reg-fullname')?.value?.trim() || '';
+                const username = document.getElementById('reg-username')?.value?.trim() || '';
+                const phone = document.getElementById('reg-phone')?.value?.trim() || '';
+                const email = document.getElementById('reg-email')?.value?.trim() || '';
+                const address = document.getElementById('reg-address')?.value?.trim() || '';
+                const password = document.getElementById('reg-password')?.value?.trim() || '';
                 const submitBtn = document.getElementById('btn-register-submit');
                 const redirect = this.getRedirectUrl('index.php');
 
@@ -341,10 +341,13 @@ if (!in_array($activeTab, ['login', 'register', 'guest'])) {
                     return;
                 }
 
-                submitBtn.disabled = true;
-                submitBtn.innerText = 'Creating Account...';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = 'Creating Account...';
+                }
 
                 try {
+                    const history = JSON.parse(localStorage.getItem('satay_history') || '[]');
                     const res = await fetch('api/auth.php?action=register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -354,7 +357,8 @@ if (!in_array($activeTab, ['login', 'register', 'guest'])) {
                             phone: phone,
                             email: email,
                             address: address,
-                            password: password
+                            password: password,
+                            order_numbers: history
                         })
                     });
                     const data = await res.json();
