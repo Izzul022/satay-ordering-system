@@ -136,6 +136,18 @@ function handle_register(PDO $pdo) {
     $insert->execute([$username, $password_hash, $full_name, $email, $phone, $address, $role]);
     $user_id = (int)$pdo->lastInsertId();
 
+    // Link/claim any guest orders to this newly registered user account
+    $order_numbers = $data['order_numbers'] ?? [];
+    if (!empty($order_numbers) && is_array($order_numbers)) {
+        $clean_nums = array_map('trim', $order_numbers);
+        $placeholders = implode(',', array_fill(0, count($clean_nums), '?'));
+        $params = array_merge([$user_id], $clean_nums);
+        try {
+            $stmt = $pdo->prepare("UPDATE orders SET user_id = ? WHERE order_number IN ($placeholders) AND (user_id IS NULL OR user_id = 0)");
+            $stmt->execute($params);
+        } catch (Exception $e) {}
+    }
+
     // Auto log in new customer with persistent session
     unset($_SESSION['is_guest'], $_SESSION['guest_name'], $_SESSION['guest_phone']);
     $_SESSION['user_id'] = $user_id;

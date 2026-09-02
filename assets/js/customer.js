@@ -383,38 +383,46 @@ const CustomerApp = {
  const errDiv = document.getElementById('cust-reg-error');
  const btn = document.getElementById('btn-cust-register');
 
- if (errDiv) errDiv.style.display = 'none';
- if (btn) { btn.disabled = true; btn.innerText = 'Creating Account...'; }
+    if (errDiv) errDiv.style.display = 'none';
+    if (btn) { btn.disabled = true; btn.innerText = 'Creating Account...'; }
 
- try {
- const res = await fetch('api/auth.php?action=register', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ full_name, username, phone, email, address, password })
- });
- const data = await res.json();
-        if (data.success) {
-          this.currentUser = data.user;
-          this.guestInfo = null;
-          SatayApp.closeModal('customer-auth-modal');
-          SatayApp.showToast(`Welcome to Sate Tulang Madu, ${data.user.full_name}!`, 'success');
+    try {
+      const history = JSON.parse(localStorage.getItem('satay_history') || '[]');
+      const res = await fetch('api/auth.php?action=register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name, username, phone, email, address, password, order_numbers: history })
+      });
+      const data = await res.json();
+      if (data.success) {
+        this.currentUser = data.user;
+        this.guestInfo = null;
+        SatayApp.closeModal('customer-auth-modal');
+        this.renderHeaderAuthUI();
+        SatayApp.showToast(`🎉 Welcome to Sate Tulang Madu, ${data.user.full_name}! Account created & orders saved.`, 'success');
+
+        const activeOrder = this.activeTrackingOrderNumber;
+        if (activeOrder) {
+          this.startLiveTracking(activeOrder);
+        } else {
           setTimeout(() => {
             window.location.reload();
-          }, 400);
-        } else {
- if (errDiv) {
- errDiv.innerText = data.message || 'Registration failed';
- errDiv.style.display = 'block';
- }
- }
- } catch (err) {
- if (errDiv) {
- errDiv.innerText = 'Network error during registration';
- errDiv.style.display = 'block';
- }
- } finally {
- if (btn) { btn.disabled = false; btn.innerText = 'Create Account & Start Ordering '; }
- }
+          }, 500);
+        }
+      } else {
+        if (errDiv) {
+          errDiv.innerText = data.message || 'Registration failed';
+          errDiv.style.display = 'block';
+        }
+      }
+    } catch (err) {
+      if (errDiv) {
+        errDiv.innerText = 'Network error during registration';
+        errDiv.style.display = 'block';
+      }
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerText = 'Create Account & Start Ordering '; }
+    }
  });
  }
 
