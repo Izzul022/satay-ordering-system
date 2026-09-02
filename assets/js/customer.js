@@ -24,6 +24,7 @@ const CustomerApp = {
  guestInfo: null,
  tables: [],
  taxRatePercent: 6.0,
+ notifiedReadyOrders: new Set(),
 
  async init() {
  this.loadCartFromStorage();
@@ -32,6 +33,7 @@ const CustomerApp = {
  this.checkUrlParams();
  this.fetchMenu();
  this.bindEvents();
+ this.startBackgroundOrderWatcher();
  },
 
  async checkAuthState() {
@@ -1141,32 +1143,104 @@ const CustomerApp = {
  SatayApp.closeModal('tracker-modal');
  },
 
- async pollOrderStatus() {
- if (!this.activeTrackingOrderNumber) return;
+ startBackgroundOrderWatcher() {
+    // Periodically check active order status for floating ready notifications
+    setInterval(() => this.checkActiveOrdersForReadyNotification(), 5000);
+    setTimeout(() => this.checkActiveOrdersForReadyNotification(), 1500);
+  },
 
- try {
- const res = await fetch(`api/orders.php?order_number=${this.activeTrackingOrderNumber}`);
- const data = await res.json();
+  async checkActiveOrdersForReadyNotification() {
+    try {
+      let activeOrderNums = [];
+      const history = JSON.parse(localStorage.getItem('satay_history') || '[]');
+      if (this.activeTrackingOrderNumber && !history.includes(this.activeTrackingOrderNumber)) {
+        activeOrderNums.push(this.activeTrackingOrderNumber);
+      }
+      activeOrderNums = activeOrderNums.concat(history).slice(0, 10);
 
- if (data.success && data.order) {
- this.renderTrackerUI(data.order);
- }
- } catch (err) {
- console.error('Tracking poll error:', err);
- }
- },
+      if (activeOrderNums.length === 0) return;
+
+      const res = await fetch(`api/orders.php?order_numbers=${encodeURIComponent(activeOrderNums.join(','))}`);
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.orders)) {
+        data.orders.forEach(order => {
+          if (order.order_status === 'ready' && !this.notifiedReadyOrders.has(order.order_number)) {
+            this.triggerFloatingReadyNotification(order);
+          }
+        });
+      }
+    } catch (e) {}
+  },
+
+  triggerFloatingReadyNotification(order) {
+    this.notifiedReadyOrders.add(order.order_number);
+
+    // Play chime sound & trigger vibration
+    SatayApp.playChime('new_order');
+    if (navigator.vibrate) {
+      try { navigator.vibrate([250, 100, 250]); } catch (e) {}
+    }
+
+    // Remove existing banner if present
+    const oldBanner = document.getElementById('floating-ready-notification-banner');
+    if (oldBanner) oldBanner.remove();
+
+    let tableText = order.table_number ? ` (Table ${SatayApp.escapeHtml(order.table_number)})` : '';
+
+    const banner = document.createElement('div');
+    banner.id = 'floating-ready-notification-banner';
+    banner.className = 'floating-ready-toast';
+    banner.innerHTML = `
+      <div class="floating-ready-icon">🛎️</div>
+      <div class="floating-ready-body">
+        <div class="floating-ready-title">YOUR ORDER IS READY FOR YOU!</div>
+        <div class="floating-ready-desc">
+          Order #${SatayApp.escapeHtml(order.order_number)}${tableText} is freshly prepared & ready for pickup/serving!
+        </div>
+      </div>
+      <div class="floating-ready-actions">
+        <button class="floating-ready-btn" onclick="CustomerApp.openLiveTrackerFor('${SatayApp.escapeHtml(order.order_number)}')">View Tracker</button>
+        <button class="floating-ready-close" onclick="this.closest('.floating-ready-toast').remove()">✕</button>
+      </div>
+    `;
+    document.body.appendChild(banner);
+  },
+
+  openLiveTrackerFor(orderNumber) {
+    const banner = document.getElementById('floating-ready-notification-banner');
+    if (banner) banner.remove();
+    this.startLiveTracking(orderNumber);
+  },
+
+  async pollOrderStatus() {
+    if (!this.activeTrackingOrderNumber) return;
+
+    try {
+      const res = await fetch(`api/orders.php?order_number=${this.activeTrackingOrderNumber}`);
+      const data = await res.json();
+
+      if (data.success && data.order) {
+        if (data.order.order_status === 'ready' && !this.notifiedReadyOrders.has(data.order.order_number)) {
+          this.triggerFloatingReadyNotification(data.order);
+        }
+        this.renderTrackerUI(data.order);
+      }
+    } catch (err) {
+      console.error('Tracking poll error:', err);
+    }
+  },
 
  renderTrackerUI(order) {
     const trackerContainer = document.getElementById('tracker-details-container');
     if (!trackerContainer) return;
 
-    const stages = ['pending', 'confirmed', 'grilling', 'ready', 'completed'];
+    const stages = ['pending', 'confirmed', 'ready', 'completed'];
     const stageLabels = {
       pending: '1. Order Sent',
-      confirmed: '2. Kitchen Accepted',
-      grilling: '3. Charcoal Grilling',
-      ready: '4. Ready for You',
-      completed: '5. Completed'
+      confirmed: '2. Kitchen Preparing',
+      ready: '3. Ready for You',
+      completed: '4. Completed'
     };
 
     const stageHeroMeta = {
@@ -1179,14 +1253,8 @@ const CustomerApp = {
       confirmed: {
         icon: '👨‍🍳',
         class: 'status-anim-confirmed',
-        title: 'Kitchen Accepted Order!',
-        subtitle: 'Chef has accepted your order! Preparing fresh skewers & marinades.'
-      },
-      grilling: {
-        icon: '🔥',
-        class: 'status-anim-grilling',
-        title: 'Sizzling on Charcoal Grill!',
-        subtitle: 'Skewers are grilling over red-hot charcoal with sweet honey glaze.'
+        title: 'Kitchen Preparing Your Order!',
+        subtitle: 'Chef has accepted your order! Preparing and grilling fresh skewers & marinades.'
       },
       ready: {
         icon: '🛎️',
@@ -1202,13 +1270,19 @@ const CustomerApp = {
       }
     };
 
-    const currentIdx = Math.max(0, stages.indexOf(order.order_status));
-    const heroInfo = stageHeroMeta[order.order_status] || stageHeroMeta.pending;
+    // Normalize 'grilling' status to 'confirmed' (Kitchen Preparing)
+    let currentStatus = order.order_status;
+    if (currentStatus === 'grilling') {
+      currentStatus = 'confirmed';
+    }
 
-    // Timeline percentage calculation (0%, 25%, 50%, 75%, 100%)
+    const currentIdx = Math.max(0, stages.indexOf(currentStatus));
+    const heroInfo = stageHeroMeta[currentStatus] || stageHeroMeta.pending;
+
+    // Timeline percentage calculation (0%, 33%, 66%, 100%)
     const progressWidth = Math.round((currentIdx / (stages.length - 1)) * 100);
 
-    const stepIcons = ['📋', '👨‍🍳', '🔥', '🛎️', '✅'];
+    const stepIcons = ['📋', '👨‍🍳', '🛎️', '✅'];
 
     const isOrderCompleted = order.order_status === 'completed';
 

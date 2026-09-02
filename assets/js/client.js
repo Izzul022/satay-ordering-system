@@ -456,7 +456,7 @@ const ClientApp = {
         <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="ClientApp.updateStatus(${order.id}, 'cancelled')">Reject</button>
         <button class="btn btn-primary btn-sm" style="flex:2;" onclick="ClientApp.updateStatus(${order.id}, 'confirmed')">Accept Order</button>
       `;
-    } else if (order.order_status === 'confirmed') {
+    } else if (order.order_status === 'confirmed' || order.order_status === 'grilling') {
       if (this.activeStation === 'drinks') {
         return `
           <button class="btn btn-primary btn-sm" style="width:100%; background:var(--info); border-color:var(--info);" onclick="ClientApp.updateStatus(${order.id}, 'ready')">
@@ -465,14 +465,8 @@ const ClientApp = {
         `;
       }
       return `
-        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="ClientApp.updateStatus(${order.id}, 'grilling')">
-          Put on Charcoal Grill
-        </button>
-      `;
-    } else if (order.order_status === 'grilling') {
-      return `
         <button class="btn btn-success btn-sm" style="width:100%;" onclick="ClientApp.updateStatus(${order.id}, 'ready')">
-          Mark Ready to Serve
+          🛎️ Mark Ready for Customer
         </button>
       `;
     } else if (order.order_status === 'ready') {
