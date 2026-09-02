@@ -105,13 +105,15 @@ function handle_get_dashboard_stats(PDO $pdo) {
     }
 
     // 3. Last 7 Days Revenue Trend
+    $driver = strtolower($pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+    $date_clause = ($driver === 'mysql') ? "created_at >= NOW() - INTERVAL 6 DAY" : "created_at >= date('now', '-6 days')";
     $trend_stmt = $pdo->query("
         SELECT 
             DATE(created_at) as order_date,
             COUNT(*) as orders_count,
             COALESCE(SUM(CASE WHEN order_status != 'cancelled' THEN total_amount ELSE 0 END), 0) as daily_revenue
         FROM orders
-        WHERE created_at >= date('now', '-6 days')
+        WHERE {$date_clause}
         GROUP BY DATE(created_at)
         ORDER BY order_date ASC
     ");
@@ -177,7 +179,7 @@ function handle_get_settings(PDO $pdo) {
 
 function handle_update_settings(PDO $pdo) {
     $data = get_json_input();
-    $stmt = $pdo->prepare("INSERT OR REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+    $stmt = $pdo->prepare("REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)");
 
     foreach ($data as $key => $val) {
         $stmt->execute([$key, (string)$val]);

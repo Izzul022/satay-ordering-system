@@ -5,118 +5,235 @@
  */
 
 function init_database_schema(PDO $pdo) {
-    // 1. Create tables
-    $pdo->exec("
-        CREATE TABLE IF NOT EXISTS categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            slug TEXT UNIQUE NOT NULL,
-            description TEXT,
-            display_order INTEGER DEFAULT 0,
-            icon TEXT,
-            is_active INTEGER DEFAULT 1,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
+    $driver = strtolower($pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
 
-        CREATE TABLE IF NOT EXISTS menu_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            category_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            slug TEXT UNIQUE,
-            description TEXT,
-            price_per_unit REAL NOT NULL,
-            unit_name TEXT DEFAULT 'stick',
-            min_quantity INTEGER DEFAULT 1,
-            image_url TEXT,
-            is_popular INTEGER DEFAULT 0,
-            is_available INTEGER DEFAULT 1,
-            stock_quantity INTEGER DEFAULT 100,
-            stick_meat_type TEXT DEFAULT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
-        );
+    if ($driver === 'mysql') {
+        // MySQL DDL Schema
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS categories (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                slug VARCHAR(255) UNIQUE NOT NULL,
+                description TEXT,
+                display_order INT DEFAULT 0,
+                icon VARCHAR(255),
+                is_active TINYINT(1) DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-        CREATE TABLE IF NOT EXISTS tables (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            table_number TEXT UNIQUE NOT NULL,
-            qr_token TEXT UNIQUE NOT NULL,
-            status TEXT DEFAULT 'available', -- available, occupied, reserved
-            capacity INTEGER DEFAULT 4,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
+            CREATE TABLE IF NOT EXISTS menu_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                category_id INT NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                slug VARCHAR(255) UNIQUE,
+                description TEXT,
+                price_per_unit DECIMAL(10,2) NOT NULL,
+                unit_name VARCHAR(50) DEFAULT 'stick',
+                min_quantity INT DEFAULT 1,
+                image_url TEXT,
+                is_popular TINYINT(1) DEFAULT 0,
+                is_available TINYINT(1) DEFAULT 1,
+                stock_quantity INT DEFAULT 100,
+                stick_meat_type VARCHAR(100) DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-        CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER DEFAULT NULL,
-            is_guest INTEGER DEFAULT 1,
-            order_number TEXT UNIQUE NOT NULL,
-            customer_name TEXT NOT NULL,
-            customer_phone TEXT,
-            dining_type TEXT NOT NULL, -- dine_in, takeaway, delivery
-            table_number TEXT,
-            delivery_address TEXT,
-            notes TEXT,
-            subtotal REAL NOT NULL DEFAULT 0.00,
-            tax_amount REAL NOT NULL DEFAULT 0.00,
-            service_fee REAL NOT NULL DEFAULT 0.00,
-            discount_amount REAL NOT NULL DEFAULT 0.00,
-            total_amount REAL NOT NULL DEFAULT 0.00,
-            payment_method TEXT DEFAULT 'cash', -- cash, qr_pay, card, online
-            payment_status TEXT DEFAULT 'unpaid', -- unpaid, paid, refunded
-            order_status TEXT DEFAULT 'pending', -- pending, confirmed, grilling, ready, completed, cancelled
-            estimated_minutes INTEGER DEFAULT 15,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
+            CREATE TABLE IF NOT EXISTS tables (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                table_number VARCHAR(50) UNIQUE NOT NULL,
+                qr_token VARCHAR(255) UNIQUE NOT NULL,
+                status VARCHAR(50) DEFAULT 'available',
+                capacity INT DEFAULT 4,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-        CREATE TABLE IF NOT EXISTS order_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id INTEGER NOT NULL,
-            menu_item_id INTEGER,
-            item_name TEXT NOT NULL,
-            meat_type TEXT,
-            unit_price REAL NOT NULL,
-            quantity INTEGER NOT NULL,
-            total_price REAL NOT NULL,
-            spicy_level TEXT DEFAULT 'normal', -- mild, normal, pedas, extra_pedas
-            extras_json TEXT, -- JSON of addons (e.g. extra sauce, onions)
-            special_notes TEXT,
-            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-            FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE SET NULL
-        );
+            CREATE TABLE IF NOT EXISTS users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                full_name VARCHAR(255) NOT NULL,
+                email VARCHAR(255),
+                phone VARCHAR(50),
+                address TEXT,
+                role VARCHAR(50) NOT NULL DEFAULT 'customer',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-        CREATE TABLE IF NOT EXISTS settings (
-            setting_key TEXT PRIMARY KEY,
-            setting_value TEXT NOT NULL
-        );
+            CREATE TABLE IF NOT EXISTS orders (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT DEFAULT NULL,
+                is_guest TINYINT(1) DEFAULT 1,
+                order_number VARCHAR(100) UNIQUE NOT NULL,
+                customer_name VARCHAR(255) NOT NULL,
+                customer_phone VARCHAR(50),
+                dining_type VARCHAR(50) NOT NULL,
+                table_number VARCHAR(50),
+                delivery_address TEXT,
+                notes TEXT,
+                subtotal DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                service_fee DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                payment_method VARCHAR(50) DEFAULT 'cash',
+                payment_status VARCHAR(50) DEFAULT 'unpaid',
+                order_status VARCHAR(50) DEFAULT 'pending',
+                estimated_minutes INT DEFAULT 15,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_orders_status (order_status),
+                INDEX idx_orders_created (created_at),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            full_name TEXT NOT NULL,
-            email TEXT,
-            phone TEXT,
-            address TEXT,
-            role TEXT NOT NULL DEFAULT 'customer', -- 'admin', 'staff', 'customer'
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
+            CREATE TABLE IF NOT EXISTS order_items (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                order_id INT NOT NULL,
+                menu_item_id INT DEFAULT NULL,
+                item_name VARCHAR(255) NOT NULL,
+                meat_type VARCHAR(100),
+                unit_price DECIMAL(10,2) NOT NULL,
+                quantity INT NOT NULL,
+                total_price DECIMAL(10,2) NOT NULL,
+                spicy_level VARCHAR(50) DEFAULT 'normal',
+                extras_json TEXT,
+                special_notes TEXT,
+                INDEX idx_order_items_order (order_id),
+                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+                FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-        CREATE TABLE IF NOT EXISTS auth_tokens (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            token TEXT UNIQUE NOT NULL,
-            user_agent TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            expires_at DATETIME NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        );
+            CREATE TABLE IF NOT EXISTS settings (
+                setting_key VARCHAR(100) PRIMARY KEY,
+                setting_value TEXT NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-        CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
-        CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
-        CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
-        CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
-    ");
+            CREATE TABLE IF NOT EXISTS auth_tokens (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                token VARCHAR(255) UNIQUE NOT NULL,
+                user_agent TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                expires_at DATETIME NOT NULL,
+                INDEX idx_auth_tokens_token (token),
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ");
+    } else {
+        // SQLite DDL Schema
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                slug TEXT UNIQUE NOT NULL,
+                description TEXT,
+                display_order INTEGER DEFAULT 0,
+                icon TEXT,
+                is_active INTEGER DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS menu_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                category_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                slug TEXT UNIQUE,
+                description TEXT,
+                price_per_unit REAL NOT NULL,
+                unit_name TEXT DEFAULT 'stick',
+                min_quantity INTEGER DEFAULT 1,
+                image_url TEXT,
+                is_popular INTEGER DEFAULT 0,
+                is_available INTEGER DEFAULT 1,
+                stock_quantity INTEGER DEFAULT 100,
+                stick_meat_type TEXT DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS tables (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                table_number TEXT UNIQUE NOT NULL,
+                qr_token TEXT UNIQUE NOT NULL,
+                status TEXT DEFAULT 'available',
+                capacity INTEGER DEFAULT 4,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER DEFAULT NULL,
+                is_guest INTEGER DEFAULT 1,
+                order_number TEXT UNIQUE NOT NULL,
+                customer_name TEXT NOT NULL,
+                customer_phone TEXT,
+                dining_type TEXT NOT NULL,
+                table_number TEXT,
+                delivery_address TEXT,
+                notes TEXT,
+                subtotal REAL NOT NULL DEFAULT 0.00,
+                tax_amount REAL NOT NULL DEFAULT 0.00,
+                service_fee REAL NOT NULL DEFAULT 0.00,
+                discount_amount REAL NOT NULL DEFAULT 0.00,
+                total_amount REAL NOT NULL DEFAULT 0.00,
+                payment_method TEXT DEFAULT 'cash',
+                payment_status TEXT DEFAULT 'unpaid',
+                order_status TEXT DEFAULT 'pending',
+                estimated_minutes INTEGER DEFAULT 15,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS order_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id INTEGER NOT NULL,
+                menu_item_id INTEGER,
+                item_name TEXT NOT NULL,
+                meat_type TEXT,
+                unit_price REAL NOT NULL,
+                quantity INTEGER NOT NULL,
+                total_price REAL NOT NULL,
+                spicy_level TEXT DEFAULT 'normal',
+                extras_json TEXT,
+                special_notes TEXT,
+                FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+                FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE SET NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS settings (
+                setting_key TEXT PRIMARY KEY,
+                setting_value TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                full_name TEXT NOT NULL,
+                email TEXT,
+                phone TEXT,
+                address TEXT,
+                role TEXT NOT NULL DEFAULT 'customer',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS auth_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token TEXT UNIQUE NOT NULL,
+                user_agent TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                expires_at DATETIME NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
+            CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
+            CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+            CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
+        ");
+    }
 
     // Run safe migrations for existing databases
     migrate_database_schema($pdo);
@@ -197,11 +314,18 @@ function init_database_schema(PDO $pdo) {
 }
 
 function migrate_database_schema(PDO $pdo) {
+    $driver = strtolower($pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+
     // 1. Check users table columns
     $user_cols = [];
     try {
-        $cols = $pdo->query("PRAGMA table_info(users)")->fetchAll();
-        $user_cols = array_column($cols, 'name');
+        if ($driver === 'mysql') {
+            $cols = $pdo->query("SHOW COLUMNS FROM users")->fetchAll();
+            $user_cols = array_column($cols, 'Field');
+        } else {
+            $cols = $pdo->query("PRAGMA table_info(users)")->fetchAll();
+            $user_cols = array_column($cols, 'name');
+        }
     } catch (Exception $e) {}
 
     if (!empty($user_cols)) {
@@ -219,29 +343,42 @@ function migrate_database_schema(PDO $pdo) {
     // 2. Check orders table columns
     $order_cols = [];
     try {
-        $cols = $pdo->query("PRAGMA table_info(orders)")->fetchAll();
-        $order_cols = array_column($cols, 'name');
+        if ($driver === 'mysql') {
+            $cols = $pdo->query("SHOW COLUMNS FROM orders")->fetchAll();
+            $order_cols = array_column($cols, 'Field');
+        } else {
+            $cols = $pdo->query("PRAGMA table_info(orders)")->fetchAll();
+            $order_cols = array_column($cols, 'name');
+        }
     } catch (Exception $e) {}
 
     if (!empty($order_cols)) {
         if (!in_array('user_id', $order_cols)) {
-            $pdo->exec("ALTER TABLE orders ADD COLUMN user_id INTEGER DEFAULT NULL;");
+            $type = ($driver === 'mysql') ? "INT DEFAULT NULL" : "INTEGER DEFAULT NULL";
+            $pdo->exec("ALTER TABLE orders ADD COLUMN user_id {$type};");
         }
         if (!in_array('is_guest', $order_cols)) {
-            $pdo->exec("ALTER TABLE orders ADD COLUMN is_guest INTEGER DEFAULT 1;");
+            $type = ($driver === 'mysql') ? "TINYINT(1) DEFAULT 1" : "INTEGER DEFAULT 1";
+            $pdo->exec("ALTER TABLE orders ADD COLUMN is_guest {$type};");
         }
     }
 
     // 3. Check menu_items table columns
     $menu_cols = [];
     try {
-        $cols = $pdo->query("PRAGMA table_info(menu_items)")->fetchAll();
-        $menu_cols = array_column($cols, 'name');
+        if ($driver === 'mysql') {
+            $cols = $pdo->query("SHOW COLUMNS FROM menu_items")->fetchAll();
+            $menu_cols = array_column($cols, 'Field');
+        } else {
+            $cols = $pdo->query("PRAGMA table_info(menu_items)")->fetchAll();
+            $menu_cols = array_column($cols, 'name');
+        }
     } catch (Exception $e) {}
 
     if (!empty($menu_cols)) {
         if (!in_array('stock_quantity', $menu_cols)) {
-            $pdo->exec("ALTER TABLE menu_items ADD COLUMN stock_quantity INTEGER DEFAULT 100;");
+            $type = ($driver === 'mysql') ? "INT DEFAULT 100" : "INTEGER DEFAULT 100";
+            $pdo->exec("ALTER TABLE menu_items ADD COLUMN stock_quantity {$type};");
         }
     }
 
@@ -259,7 +396,6 @@ function migrate_database_schema(PDO $pdo) {
             $user_stmt->execute(['drinks', password_hash('drinks123', PASSWORD_DEFAULT), 'Drink Station Staff', 'drinks@satayroyale.com', '012-3456782', 'Beverage & Drink Counter', 'staff_drinks']);
         }
     } catch (Exception $e) {}
-
     // 5. Ensure default beverage items exist if category 4 is empty
     try {
         $drink_items_count = (int)$pdo->query("SELECT COUNT(*) FROM menu_items WHERE category_id = 4")->fetchColumn();
@@ -285,17 +421,32 @@ function migrate_database_schema(PDO $pdo) {
 
     // 6. Ensure auth_tokens table exists for persistent forever login sessions
     try {
-        $pdo->exec("
-            CREATE TABLE IF NOT EXISTS auth_tokens (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                token TEXT UNIQUE NOT NULL,
-                user_agent TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                expires_at DATETIME NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            );
-            CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
-        ");
+        if ($driver === 'mysql') {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS auth_tokens (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    token VARCHAR(255) UNIQUE NOT NULL,
+                    user_agent TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    expires_at DATETIME NOT NULL,
+                    INDEX idx_auth_tokens_token (token),
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+        } else {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS auth_tokens (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    token TEXT UNIQUE NOT NULL,
+                    user_agent TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    expires_at DATETIME NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
+            ");
+        }
     } catch (Exception $e) {}
 }

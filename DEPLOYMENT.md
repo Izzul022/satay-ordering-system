@@ -46,16 +46,55 @@ Render allows you to host the application online for free with automatic SSL (`h
    - **Region**: `Singapore` (Recommended for low latency in Malaysia / SEA)
    - **Runtime**: `Docker`
    - **Instance Type**: `Free`
-5. *(Optional for data persistence across container restarts)*:
-   - Under **Advanced** -> **Add Disk**:
-     - **Name**: `satay-data`
-     - **Mount Path**: `/var/www/html/data`
-     - **Size**: `1 GB`
-6. Click **Create Web Service**.
-7. Render will build the Docker container and provide you with a live public HTTPS URL:
+5. Click **Create Web Service**.
+6. Render will build the Docker container and provide you with a live public HTTPS URL:
    ```text
    https://satay-ordering-system.onrender.com
    ```
+
+---
+
+## 🗄️ Database Setup: Connecting Online MySQL to Render
+
+> [!WARNING]
+> **Why customer orders reappear on Render when using default local SQLite:**
+> Render container storage is **ephemeral**. Whenever your container restarts (every 2-3 days or on re-deploy), local SQLite database files (`data/satay.sqlite`) get **wiped and reset** back to initial repository state.
+
+To make all order status changes, menu edits, and sales data **100% persistent**, connect a free online MySQL database to your Render service:
+
+### Step 1: Create a Free MySQL Cloud Database
+You can use any free MySQL provider:
+
+#### Option A: Aiven.io (Recommended — Free 5GB MySQL)
+1. Sign up at [https://aiven.io](https://aiven.io).
+2. Create a new service -> select **MySQL** -> choose **Free Tier**.
+3. Copy your service connection details:
+   - **Host**: `mysql-xxx.aivencloud.com`
+   - **Port**: `12345`
+   - **Database**: `defaultdb` (or `satay_db`)
+   - **User**: `avnadmin`
+   - **Password**: `xxxxxxxxxxxx`
+
+#### Option B: TiDB Cloud / Railway / Clever Cloud
+- Create a free MySQL database and get your Host, Port, Database, User, and Password.
+
+### Step 2: Import Database Schema
+1. Open your MySQL management tool (phpMyAdmin, DBeaver, Aiven console, or MySQL CLI).
+2. Import the included [`schema.sql`](file:///c:/xampp/htdocs/Order_system_app/schema.sql) file located in the root of your project folder.
+3. This creates all 8 required tables (`orders`, `order_items`, `users`, `settings`, `categories`, `menu_items`, `tables`, `auth_tokens`) and pre-seeds default admin/staff logins.
+
+### Step 3: Add Environment Variables in Render
+1. Go to your Render Dashboard -> Select your `satay-ordering-system` Web Service.
+2. Click **Environment** in the left sidebar.
+3. Click **Add Environment Variable** and enter:
+   - `DB_DRIVER`: `mysql`
+   - `DB_HOST`: `your-mysql-host.aivencloud.com`
+   - `DB_PORT`: `12345`
+   - `DB_NAME`: `defaultdb`
+   - `DB_USER`: `avnadmin`
+   - `DB_PASS`: `your_password_here`
+   *(Alternatively, you can provide a single `MYSQL_URL` string: `mysql://user:pass@host:port/dbname`)*
+4. Click **Save Changes**. Render will automatically redeploy your application. Now all deleted/rejected customer orders, new orders, menu changes, and settings will persist forever!
 
 ---
 

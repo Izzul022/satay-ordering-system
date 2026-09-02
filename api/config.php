@@ -57,6 +57,51 @@ function get_db_connection() {
         return $pdo;
     }
 
+    // 1. Check if MySQL connection environment variables are set
+    $db_driver = strtolower(getenv('DB_DRIVER') ?: getenv('DB_TYPE') ?: '');
+    $db_host = getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: '';
+    $db_port = getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: '3306';
+    $db_name = getenv('DB_NAME') ?: getenv('MYSQLDATABASE') ?: getenv('MYSQL_DATABASE') ?: '';
+    $db_user = getenv('DB_USER') ?: getenv('MYSQLUSER') ?: getenv('MYSQL_USER') ?: '';
+    $db_pass = getenv('DB_PASS') ?: getenv('MYSQLPASSWORD') ?: getenv('MYSQL_PASSWORD') ?: '';
+    
+    // Parse connection string if provided (e.g. MYSQL_URL or DATABASE_URL: mysql://user:pass@host:port/dbname)
+    $db_url = getenv('DATABASE_URL') ?: getenv('MYSQL_URL') ?: '';
+    if (!empty($db_url)) {
+        $parsed = parse_url($db_url);
+        if ($parsed) {
+            $db_driver = $parsed['scheme'] ?? 'mysql';
+            $db_host = $parsed['host'] ?? $db_host;
+            $db_port = $parsed['port'] ?? $db_port;
+            $db_user = $parsed['user'] ?? $db_user;
+            $db_pass = isset($parsed['pass']) ? urldecode($parsed['pass']) : $db_pass;
+            $db_name = ltrim($parsed['path'] ?? '', '/');
+        }
+    }
+
+    if ($db_driver === 'mysql' || !empty($db_host)) {
+        try {
+            $dsn = "mysql:host={$db_host};port={$db_port};dbname={$db_name};charset=utf8mb4";
+            $pdo = new PDO($dsn, $db_user, $db_pass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
+            ]);
+
+            require_once __DIR__ . '/init_db.php';
+            init_database_schema($pdo);
+            return $pdo;
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'MySQL Database Connection Failed: ' . $e->getMessage()
+            ]);
+            exit;
+        }
+    }
+
+    // 2. Fallback: SQLite local file database
     $db_dir = __DIR__ . '/../data';
     if (!is_dir($db_dir)) {
         @mkdir($db_dir, 0777, true);
@@ -200,7 +245,7 @@ function get_current_auth_user() {
             $stmt = $pdo->prepare("
                 SELECT u.* FROM users u
                 INNER JOIN auth_tokens t ON u.id = t.user_id
-                WHERE t.token = ? AND t.expires_at > datetime('now')
+                WHERE t.token = ? AND t.expires_at > CURRENT_TIMESTAMP
                 LIMIT 1
             ");
             $stmt->execute([$remember_token]);

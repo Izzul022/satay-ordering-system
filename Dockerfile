@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install -j$(nproc) \
         pdo \
         pdo_sqlite \
+        pdo_mysql \
         gd \
         zip \
         opcache \
