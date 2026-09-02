@@ -1554,14 +1554,15 @@ const CustomerApp = {
     </div>
   `;
 
- } catch (e) {
- console.error('History load error:', e);
- container.innerHTML = `
- <div style="text-align:center; padding:2rem 1rem; color:var(--danger);">
- <p>Failed to load order history. Please try again.</p>
- </div>
- `;
-  },
+  } catch (e) {
+    console.error('History load error:', e);
+    container.innerHTML = `
+      <div style="text-align:center; padding:2rem 1rem; color:var(--danger);">
+        <p>Failed to load order history. Please try again.</p>
+      </div>
+    `;
+  }
+ },
 
   openAuthModal(tab = 'register') {
     const currentUrl = window.location.href;
