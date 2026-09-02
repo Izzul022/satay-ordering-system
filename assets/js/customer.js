@@ -1561,11 +1561,14 @@ const CustomerApp = {
  <p>Failed to load order history. Please try again.</p>
  </div>
  `;
- }
- }
+  },
+
+  openAuthModal(tab = 'register') {
+    const currentUrl = window.location.href;
+    window.location.href = `login.php?tab=${encodeURIComponent(tab)}&redirect=${encodeURIComponent(currentUrl)}`;
+  }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
  CustomerApp.init();
 });
-
