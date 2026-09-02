@@ -569,9 +569,12 @@ function handle_create_order(PDO $pdo) {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
+        $driver = strtolower($pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+        $stock_calc = ($driver === 'mysql') ? "GREATEST(0, stock_quantity - ?)" : "MAX(0, stock_quantity - ?)";
+
         $deduct_stock_stmt = $pdo->prepare("
             UPDATE menu_items 
-            SET stock_quantity = CASE WHEN stock_quantity IS NOT NULL THEN MAX(0, stock_quantity - ?) ELSE NULL END,
+            SET stock_quantity = CASE WHEN stock_quantity IS NOT NULL THEN {$stock_calc} ELSE NULL END,
                 is_available = CASE WHEN stock_quantity IS NOT NULL AND (stock_quantity - ?) <= 0 THEN 0 ELSE is_available END
             WHERE id = ?
         ");
