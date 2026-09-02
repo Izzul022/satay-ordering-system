@@ -1247,6 +1247,26 @@ const CustomerApp = {
       tableInfo = ` • ${rawTable.toLowerCase().startsWith('table') ? rawTable : `Table ${rawTable}`}`;
     }
 
+    // Calculate dynamic countdown for estimated prep time based on created_at timestamp
+    let prepTimeText = `~${order.estimated_minutes || 15} Minutes`;
+    if (order.order_status === 'completed') {
+      prepTimeText = `<span style="color:var(--success); font-weight:700;">Completed ✅</span>`;
+    } else if (order.order_status === 'ready') {
+      prepTimeText = `<span style="color:var(--gold); font-weight:700;">Ready for Pickup / Serve! 🛎️</span>`;
+    } else if (order.created_at) {
+      const createdTime = new Date(order.created_at.replace(/-/g, '/')).getTime();
+      const nowTime = new Date().getTime();
+      const elapsedMins = Math.floor((nowTime - createdTime) / (1000 * 60));
+      const totalEstMins = parseInt(order.estimated_minutes) || 15;
+      const remainingMins = totalEstMins - elapsedMins;
+
+      if (remainingMins > 0) {
+        prepTimeText = `~${remainingMins} Mins Left <span style="font-size:0.78rem; color:var(--text-muted); font-weight:normal;">(Initial: ~${totalEstMins}m)</span>`;
+      } else {
+        prepTimeText = `<span style="color:var(--gold);">Finishing Touches... (Almost Ready)</span>`;
+      }
+    }
+
     trackerContainer.innerHTML = `
       <!-- Hero Status Header with Animations -->
       <div class="tracker-hero-box">
@@ -1278,7 +1298,7 @@ const CustomerApp = {
       <div style="background:var(--bg-card); border-radius:var(--radius-md); padding:1.25rem; border:1px solid var(--border-color); margin-bottom:1.5rem;">
         <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
           <span style="color:var(--text-muted); font-size:0.88rem;">Estimated Prep Time:</span>
-          <strong style="color:var(--primary); font-size:0.95rem;">~${order.estimated_minutes || 15} Minutes</strong>
+          <strong style="color:var(--primary); font-size:0.95rem;">${prepTimeText}</strong>
         </div>
         <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
           <span style="color:var(--text-muted); font-size:0.88rem;">Payment Status:</span>
