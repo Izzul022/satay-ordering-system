@@ -185,10 +185,7 @@ const AdminApp = {
  <td><strong>#${ord.order_number}</strong></td>
  <td>${ord.customer_name}</td>
  <td><span class="badge badge-neutral">${ord.dining_type.toUpperCase()}</span></td>
- <td>
-   <span class="badge ${this.getOrderBadgeClass(ord.order_status)}">${ord.order_status}</span>
-   <span class="badge ${ord.payment_status === 'paid' ? 'badge-success' : 'badge-gold'}" style="font-size:0.7rem; padding:1px 5px; margin-left:4px;">${ord.payment_status === 'paid' ? 'PAID' : 'UNPAID'}</span>
- </td>
+ <td><span class="badge ${this.getOrderBadgeClass(ord.order_status)}">${ord.order_status}</span></td>
  <td style="font-weight:700; color:var(--gold);">${SatayApp.formatPrice(ord.total_amount)}</td>
  <td>
  <button class="btn btn-sm btn-secondary" onclick="AdminApp.viewOrderDetails(${ord.id})">Details</button>
@@ -532,20 +529,6 @@ const AdminApp = {
  <div style="background:var(--bg-card); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:1rem;">
  <div style="font-size:0.88rem; margin-bottom:4px;"><strong>Customer:</strong> ${ord.customer_name} (${ord.customer_phone || 'No phone'})</div>
  <div style="font-size:0.88rem; margin-bottom:4px;"><strong>Mode:</strong> ${ord.dining_type.toUpperCase()} ${ord.table_number ? `(Table ${ord.table_number})` : ''}</div>
- <div style="font-size:0.88rem; margin-bottom:4px;">
-   <strong>Payment:</strong> 
-   <span class="badge ${ord.payment_status === 'paid' ? 'badge-success' : 'badge-gold'}" style="font-size:0.75rem; padding:2px 6px;">
-     ${(ord.payment_status || 'unpaid').toUpperCase()}
-   </span>
-   <span style="color:var(--text-muted); font-size:0.82rem; margin-left:4px;">
-     (${ord.payment_method === 'online' ? 'Online Gateway' : (ord.payment_method === 'qr_pay' ? 'QR Pay' : 'Cash')})
-   </span>
- </div>
- ${ord.payment_gateway_ref ? `
-   <div style="font-size:0.82rem; color:var(--text-muted); margin-bottom:4px;">
-     <strong>Gateway Ref:</strong> <code style="color:var(--primary); font-family:monospace;">${SatayApp.escapeHtml(ord.payment_gateway_ref)}</code>
-   </div>
- ` : ''}
  ${ord.delivery_address ? `<div style="font-size:0.88rem; margin-bottom:4px;"><strong>Address:</strong> ${ord.delivery_address}</div>` : ''}
  ${ord.notes ? `<div style="font-size:0.88rem; color:var(--gold);"><strong>Notes:</strong> ${ord.notes}</div>` : ''}
  </div>

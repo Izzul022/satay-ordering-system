@@ -527,14 +527,8 @@ function handle_create_order(PDO $pdo) {
             }
         }
 
-        // Auto-mark as paid for QR pay/cash POS if passed; online gateway orders start unpaid
-        if (isset($data['payment_status']) && $data['payment_status'] === 'paid') {
-            $payment_status = 'paid';
-        } elseif ($payment_method === 'online' || $payment_method === 'cash') {
-            $payment_status = 'unpaid';
-        } else {
-            $payment_status = 'paid';
-        }
+        // Auto-mark as paid for QR pay/cash POS if passed
+        $payment_status = (isset($data['payment_status']) && $data['payment_status'] === 'paid') ? 'paid' : ($payment_method === 'cash' ? 'unpaid' : 'paid');
 
         // Insert Order with exact local timestamp
         $now = date('Y-m-d H:i:s');
@@ -620,11 +614,6 @@ function handle_create_order(PDO $pdo) {
             'dining_type' => $dining_type,
             'table_number' => $table_number
         ];
-        if ($payment_method === 'online') {
-            $token = hash_hmac('sha256', "{$order_number}|" . number_format((float)$total_amount, 2, '.', ''), 'satay_gateway_secret_salt_2026');
-            $response_data['redirect_url'] = 'payment_gateway.php?order_number=' . urlencode($order_number) . '&token=' . urlencode($token);
-            $response_data['payment_required'] = true;
-        }
         if ($new_registered_user) {
             $response_data['user'] = $new_registered_user;
         }

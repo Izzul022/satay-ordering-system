@@ -78,9 +78,6 @@ function init_database_schema(PDO $pdo) {
                 total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
                 payment_method VARCHAR(50) DEFAULT 'cash',
                 payment_status VARCHAR(50) DEFAULT 'unpaid',
-                payment_gateway VARCHAR(50) DEFAULT NULL,
-                payment_gateway_ref VARCHAR(255) DEFAULT NULL,
-                paid_at DATETIME DEFAULT NULL,
                 order_status VARCHAR(50) DEFAULT 'pending',
                 estimated_minutes INT DEFAULT 15,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -182,9 +179,6 @@ function init_database_schema(PDO $pdo) {
                 total_amount REAL NOT NULL DEFAULT 0.00,
                 payment_method TEXT DEFAULT 'cash',
                 payment_status TEXT DEFAULT 'unpaid',
-                payment_gateway TEXT DEFAULT NULL,
-                payment_gateway_ref TEXT DEFAULT NULL,
-                paid_at DATETIME DEFAULT NULL,
                 order_status TEXT DEFAULT 'pending',
                 estimated_minutes INTEGER DEFAULT 15,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -347,18 +341,6 @@ function migrate_database_schema(PDO $pdo) {
         if (!in_array('is_guest', $order_cols)) {
             $type = ($driver === 'mysql') ? "TINYINT(1) DEFAULT 1" : "INTEGER DEFAULT 1";
             $pdo->exec("ALTER TABLE orders ADD COLUMN is_guest {$type};");
-        }
-        if (!in_array('payment_gateway', $order_cols)) {
-            $type = ($driver === 'mysql') ? "VARCHAR(50) DEFAULT NULL" : "TEXT DEFAULT NULL";
-            $pdo->exec("ALTER TABLE orders ADD COLUMN payment_gateway {$type};");
-        }
-        if (!in_array('payment_gateway_ref', $order_cols)) {
-            $type = ($driver === 'mysql') ? "VARCHAR(255) DEFAULT NULL" : "TEXT DEFAULT NULL";
-            $pdo->exec("ALTER TABLE orders ADD COLUMN payment_gateway_ref {$type};");
-        }
-        if (!in_array('paid_at', $order_cols)) {
-            $type = ($driver === 'mysql') ? "DATETIME DEFAULT NULL" : "DATETIME DEFAULT NULL";
-            $pdo->exec("ALTER TABLE orders ADD COLUMN paid_at {$type};");
         }
     }
 
