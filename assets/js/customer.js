@@ -241,6 +241,32 @@ const CustomerApp = {
     if (track) {
       this.startLiveTracking(track);
     }
+
+    const order = urlParams.get('order');
+    const payment = urlParams.get('payment');
+    if (order && payment) {
+      this.saveOrderToHistory(order);
+      if (payment === 'success') {
+        setTimeout(() => {
+          SatayApp.showToast('🎉 Payment approved! Your order has reached the kitchen.', 'success');
+          SatayApp.playChime('new_order');
+        }, 500);
+      } else if (payment === 'failed') {
+        setTimeout(() => {
+          SatayApp.showToast('⚠️ Payment was not completed. You can retry paying online anytime.', 'warning');
+        }, 500);
+      }
+      this.startLiveTracking(order);
+
+      // Clean the payment query string from the browser address bar
+      try {
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete('payment');
+        cleanParams.delete('order');
+        const cleanUrl = window.location.pathname + (cleanParams.toString() ? '?' + cleanParams.toString() : '');
+        window.history.replaceState({}, document.title, cleanUrl);
+      } catch (e) {}
+    }
   },
 
   // Update sidebar table chip + topbar dining badge
@@ -1124,6 +1150,16 @@ const CustomerApp = {
         this.saveOrderToHistory(data.order_number);
 
         SatayApp.closeModal('checkout-modal');
+
+        // If online payment gateway redirect is requested
+        if (data.redirect_url) {
+          SatayApp.showToast('💳 Redirecting to secure payment gateway...', 'info');
+          setTimeout(() => {
+            window.location.href = data.redirect_url;
+          }, 600);
+          return;
+        }
+
         SatayApp.showToast('🎉 Order placed successfully!', 'success');
         SatayApp.playChime('new_order');
 
@@ -1403,9 +1439,29 @@ const CustomerApp = {
           <strong style="color:var(--primary); font-size:0.95rem;">${prepTimeText}</strong>
         </div>
         <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
-          <span style="color:var(--text-muted); font-size:0.88rem;">Payment Status:</span>
-          <strong style="text-transform:uppercase; font-size:0.88rem; color:${order.payment_status === 'paid' ? 'var(--success)' : 'var(--gold)'};">${order.payment_status}</strong>
+          <span style="color:var(--text-muted); font-size:0.88rem;">Payment:</span>
+          <div style="text-align:right;">
+            <strong style="text-transform:uppercase; font-size:0.88rem; color:${order.payment_status === 'paid' ? 'var(--success)' : 'var(--gold)'};">
+              ${order.payment_status === 'paid' ? '✓ PAID' : 'UNPAID'}
+            </strong>
+            <span style="font-size:0.78rem; color:var(--text-muted); margin-left:4px;">
+              (${order.payment_method === 'online' ? 'Online Gateway' : (order.payment_method === 'qr_pay' ? 'QR Pay' : 'Cash at Counter')})
+            </span>
+          </div>
         </div>
+        ${order.payment_gateway_ref ? `
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem; font-size:0.78rem; color:var(--text-muted);">
+            <span>Gateway Ref:</span>
+            <span style="font-family:monospace; color:var(--primary);">${SatayApp.escapeHtml(order.payment_gateway_ref)}</span>
+          </div>
+        ` : ''}
+        ${order.payment_status !== 'paid' && order.payment_method === 'online' ? `
+          <div style="margin-top:0.5rem; margin-bottom:0.75rem;">
+            <a href="payment_gateway.php?order_number=${encodeURIComponent(order.order_number)}" class="btn btn-primary btn-sm" style="display:flex; width:100%; justify-content:center; align-items:center; gap:6px; font-weight:700; text-decoration:none;">
+              💳 Complete Online Payment (Simulate Gateway) ➔
+            </a>
+          </div>
+        ` : ''}
         <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--border-color);">
           <div style="font-weight:700; font-size:0.88rem; margin-bottom:0.5rem;">Ordered Items:</div>
           ${itemsHtml}

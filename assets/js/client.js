@@ -418,7 +418,10 @@ const ClientApp = {
           <div class="ticket-body">
             <div style="margin-bottom:0.6rem; display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted);">
               <span>Mode: <strong style="color:#fff; text-transform:capitalize;">${SatayApp.escapeHtml(order.dining_type.replace('_', ' '))}</strong></span>
-              <span>Pay: <strong style="color:${order.payment_status === 'paid' ? 'var(--success)' : 'var(--gold)'};">${SatayApp.escapeHtml(order.payment_status)}</strong></span>
+              <span>Pay: <strong style="color:${order.payment_status === 'paid' ? 'var(--success)' : 'var(--gold)'}; text-transform:uppercase;">
+                ${order.payment_status === 'paid' ? '🟢 PAID' : '🟡 UNPAID'}
+                ${order.payment_method === 'online' ? '(Online)' : (order.payment_method === 'qr_pay' ? '(QR)' : '(Cash)')}
+              </strong></span>
             </div>
 
             ${order.notes ? `

@@ -553,8 +553,9 @@ if (!$currentUser) {
                     <div class="form-group">
                         <label class="form-label" for="checkout-payment">Payment Method:</label>
                         <select class="form-select" id="checkout-payment">
-                            <option value="cash">Cash at Counter / Pay at Counter</option>
-                            <option value="qr_pay">DuitNow QR / Touch 'n Go eWallet</option>
+                            <option value="online">💳 Online Gateway (FPX / Card / eWallet Simulator)</option>
+                            <option value="cash">💵 Cash at Counter / Pay Later</option>
+                            <option value="qr_pay">📱 DuitNow QR Direct (At Counter)</option>
                         </select>
                     </div>
 
