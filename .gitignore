@@ -15,3 +15,9 @@ android-app/android/local.properties
 # OS / Editor
 .DS_Store
 Thumbs.db
+.agent/
+.agents/
+.codex/
+.cursor/
+.gemini/
+
