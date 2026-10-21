@@ -72,13 +72,20 @@ if (!$currentUser) {
                     <div class="sidenav-user-role"><?php echo ucfirst($currentUser['role']); ?> Account</div>
                 </div>
             </div>
-        <?php elseif ($guestInfo): ?>
-            <div class="sidenav-user-card">
-                <div class="sidenav-avatar" style="background:var(--gold);">G</div>
-                <div class="sidenav-user-info">
-                    <div class="sidenav-user-name"><?php echo htmlspecialchars($guestInfo['guest_name']); ?></div>
-                    <div class="sidenav-user-role">Guest Mode</div>
+        <?php else: ?>
+            <div class="sidenav-user-card" style="justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.75rem; min-width:0;">
+                    <div class="sidenav-avatar" style="background:var(--gold);">G</div>
+                    <div class="sidenav-user-info">
+                        <div class="sidenav-user-name"><?php echo htmlspecialchars($guestInfo['guest_name'] ?? 'Guest Customer'); ?></div>
+                        <div class="sidenav-user-role">Guest Mode</div>
+                    </div>
                 </div>
+                <button type="button" class="btn btn-primary btn-xs"
+                    onclick="SatayApp.closeSideNav(); CustomerApp.openAuthModal('register')"
+                    style="font-size:0.75rem; padding:0.35rem 0.7rem; border-radius:var(--radius-full); white-space:nowrap; flex-shrink:0;">
+                    Sign In
+                </button>
             </div>
         <?php endif; ?>
 
@@ -106,13 +113,28 @@ if (!$currentUser) {
                 <span>Takeaway (Bungkus)</span>
             </button>
 
+            <div class="sidenav-section-title">Account & Access</div>
             <?php if ($currentUser && $currentUser['role'] === 'customer'): ?>
-                <div class="sidenav-section-title">Account</div>
                 <button type="button" class="sidenav-link"
                     onclick="SatayApp.closeSideNav(); CustomerApp.openProfileModal()">
                     <span class="sidenav-link-icon">👤</span>
                     <span>My Saved Profile</span>
                 </button>
+                <a href="logout.php?redirect=login.php" class="sidenav-link" style="color:var(--danger);">
+                    <span class="sidenav-link-icon">🚪</span>
+                    <span>Sign Out</span>
+                </a>
+            <?php else: ?>
+                <button type="button" class="sidenav-link"
+                    onclick="SatayApp.closeSideNav(); CustomerApp.openAuthModal('register')"
+                    style="color:var(--gold); font-weight:700; background:rgba(212, 175, 55, 0.1); border:1px solid rgba(212, 175, 55, 0.28);">
+                    <span class="sidenav-link-icon">✨</span>
+                    <span>Register / Sign In</span>
+                </button>
+                <a href="login.php" class="sidenav-link" onclick="SatayApp.closeSideNav()">
+                    <span class="sidenav-link-icon">🔐</span>
+                    <span>Staff & Portal Login</span>
+                </a>
             <?php endif; ?>
 
             <?php if ($currentUser && in_array($currentUser['role'], ['admin', 'staff'])): ?>
@@ -139,7 +161,7 @@ if (!$currentUser) {
             <?php else: ?>
                 <button type="button" class="btn btn-primary btn-sm"
                     onclick="SatayApp.closeSideNav(); CustomerApp.openAuthModal('register')"
-                    style="width:100%; justify-content:center;">
+                    style="width:100%; justify-content:center; font-weight:700;">
                     ✨ Register / Sign In
                 </button>
             <?php endif; ?>
