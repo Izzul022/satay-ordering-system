@@ -27,6 +27,11 @@ switch ($method) {
 
 function handle_get(PDO $pdo)
 {
+    if (isset($_GET['sync']) || isset($_GET['force_sync'])) {
+        require_once __DIR__ . '/init_db.php';
+        sync_default_menu_catalog($pdo, true);
+    }
+
     $category_id = isset($_GET['category_id']) ? (int) $_GET['category_id'] : null;
     $include_unavailable = isset($_GET['all']) && $_GET['all'] == '1';
 
